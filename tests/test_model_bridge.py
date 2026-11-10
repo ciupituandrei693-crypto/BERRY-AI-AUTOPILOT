@@ -66,7 +66,7 @@ def test_bridge_runs_explicit_local_command_and_stores_mp4(monkeypatch, tmp_path
         assert kwargs["check"] is False
         output = Path(argv[-1])
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_bytes(b"FAKE-MP4" * 300)
+        output.write_bytes(b"\x00\x00\x00\x18ftypisom" + b"\x00" * 2400)
         return CompletedProcess(argv, 0, "finished", "")
 
     monkeypatch.setattr(model_bridge.subprocess, "run", fake_run)
