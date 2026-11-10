@@ -1,6 +1,7 @@
 """Read-only local Windows/hardware diagnostics. No downloads or AI workload."""
 from __future__ import annotations
 
+import json
 import os
 import platform
 import shutil
@@ -39,6 +40,28 @@ def _gpu_windows() -> list[dict]:
         return []
 
 
+
+def _last_validation() -> dict | None:
+    folder = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'BERRY_AI_AUTOPILOT' / 'reports'
+    if not folder.is_dir():
+        return None
+    candidates = sorted(folder.glob('pc_validation_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not candidates:
+        return None
+    latest = candidates[0]
+    try:
+        if latest.stat().st_size > 200_000:
+            return None
+        data = json.loads(latest.read_text(encoding='utf-8'))
+        return {'timestamp_utc': data.get('timestamp_utc'),
+                'counts': data.get('counts'),
+                'steps': data.get('steps', [])[:12],
+                'blender_3d_benchmarked': data.get('blender_3d_benchmarked', False),
+                'ai_model_inference_benchmarked': data.get('ai_model_inference_benchmarked', False)}
+    except (OSError, ValueError, TypeError):
+        return None
+
+
 def report() -> dict:
     root = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'BERRY_AI_AUTOPILOT'
     try:
@@ -68,7 +91,7 @@ def report() -> dict:
         'system': {'os': platform.system(), 'os_release': platform.release(),
                    'cpu': platform.processor()[:100], 'python': platform.python_version(),
                    'disk_free_gib': free_gib, 'gpus': _gpu_windows()},
-        'binaries': binaries,
+        'binaries': binaries, 'last_pc_validation': _last_validation(),
         'verification': 'Detectare locală, NU benchmark de inferență; pentru teste reale pornește modelele separat.',
         'next_step': 'Generează o scenă Blender 3D de 6 secunde; măsoară timpul și verifică video/voce manual.',
     }
