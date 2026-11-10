@@ -163,7 +163,9 @@ def validate(full: bool = False, tests: bool = False) -> dict:
     report["model_bridges"] = {name: model_bridge.status(name) for name in model_bridge.KINDS}
     report["counts"] = {s: sum(x["status"] == s for x in report["steps"])
                         for s in ("PASS", "FAIL", "SKIP")}
-    report["hardware_validated_here"] = report["counts"]["PASS"] > 0
+    report["local_media_benchmark_completed"] = any(x["name"].startswith(("FFmpeg", "Blender")) and x["status"] == "PASS" for x in report["steps"])
+    report["blender_3d_benchmarked"] = any(x["name"].startswith("Blender") and x["status"] == "PASS" for x in report["steps"])
+    report["ai_model_inference_benchmarked"] = False
     report["all_selected_tests_passed"] = report["counts"]["FAIL"] == 0
     report["ready_for_external_phase"] = False
     return report
