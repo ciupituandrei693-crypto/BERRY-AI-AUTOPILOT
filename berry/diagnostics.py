@@ -56,6 +56,7 @@ def _last_validation() -> dict | None:
         return {'timestamp_utc': data.get('timestamp_utc'),
                 'counts': data.get('counts'),
                 'steps': data.get('steps', [])[:12],
+                'optimization_recommendations': data.get('optimization_recommendations', [])[:10],
                 'blender_3d_benchmarked': data.get('blender_3d_benchmarked', False),
                 'ai_model_inference_benchmarked': data.get('ai_model_inference_benchmarked', False)}
     except (OSError, ValueError, TypeError):
