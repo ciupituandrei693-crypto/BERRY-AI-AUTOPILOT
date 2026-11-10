@@ -1,8 +1,9 @@
 """Opt-in LOCAL model bridge for LivePortrait, MuseTalk, LatentSync, Hunyuan3D.
 
-Uses user-configured Python environments and argv arrays; NEVER a shell, auto
-installer, remote service, or download. Configuration is intentionally explicit
-because upstream model CLIs and checkpoints change between versions.
+Uses user-configured Python environments and argv arrays; no shell or
+automatic installer/download in BERRY. Offline environment flags are applied,
+but third-party Python code can still attempt network access; use OS firewall
+rules for strict isolation. Upstream CLIs and checkpoints vary by version.
 """
 from __future__ import annotations
 
