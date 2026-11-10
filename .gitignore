@@ -81,3 +81,6 @@ Thumbs.db
 # User-specific local model bridge and PC benchmark reports
 model_bridge.local.json
 pc_validation_*.json
+
+# Cloned third-party engine sources (local only)
+local_engines/
