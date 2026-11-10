@@ -72,3 +72,6 @@ Thumbs.db
 .idea/
 .runtime/
 *.flag
+
+.build-venv/
+*.spec

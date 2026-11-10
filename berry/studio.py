@@ -37,7 +37,17 @@ def binary_path(name: str, env_name: str) -> str | None:
         # Explicit local executable paths only; no network or shell invocation.
         p = Path(configured).expanduser()
         return str(p) if p.is_file() else None
-    return shutil.which(name)
+    found = shutil.which(name)
+    if found:
+        return found
+    if name == "ffmpeg":
+        try:
+            import imageio_ffmpeg
+            exe = Path(imageio_ffmpeg.get_ffmpeg_exe())
+            return str(exe) if exe.is_file() else None
+        except (ImportError, RuntimeError, OSError):
+            return None
+    return None
 
 
 def capabilities() -> dict:
@@ -47,6 +57,7 @@ def capabilities() -> dict:
     return {
         "ffmpeg": {"ready": bool(ffmpeg), "detail": "Randare locală MP4" if ffmpeg else "Instalează FFmpeg sau configurează BERRY_FFMPEG_PATH"},
         "piper": {"ready": bool(piper and model and model.is_file()), "detail": "TTS local, dacă vocea .onnx este configurată"},
+        "windows_sapi": {"ready": os.name == "nt", "detail": "Voce offline Windows inclusă în sistem; calitatea depinde de vocile instalate"},
         "koboldcpp": {"ready": False, "detail": "Adaptor disponibil; modelul local trebuie pornit separat"},
         "blender": {"ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "detail": "Detectare instalare; rigging 3D nu este integrat"},
         "voice_studio": {"ready": False, "detail": "Sursă disponibilă, adaptor încă neintegrat"},
@@ -123,15 +134,32 @@ def _set_status(job_id: int, status: str, *, result: dict | None = None, error: 
 
 
 def _script_lines(item: dict) -> list[str]:
+    script_root = Path(os.getenv("BERRY_SCRIPT_DIR", str(ROOT / "data" / "scripts")))
+    custom = script_root / f"item_{item['id']}.txt"
+    if custom.is_file():
+        return [line.strip() for line in custom.read_text(encoding="utf-8").splitlines() if line.strip()]
     topic = " ".join(item["topic"].split())
     lead = LEADS[item["channel_id"]]
-    return [
+    opening = [
         f"{lead} prezintă: {topic}.",
-        "Ce merită să știm înainte să tragem o concluzie?",
-        f"Explorăm subiectul {topic} cu exemple ușor de urmărit.",
-        "Separăm observațiile de presupuneri și verificăm informațiile importante.",
-        "Tu ce întrebare ai despre acest subiect? Scrie-ne în comentarii.",
+        f"Astăzi vorbim despre {topic} și încercăm să înțelegem de ce contează.",
+        "Pornim de la o întrebare simplă: ce știm sigur și ce trebuie verificat?",
+        "Mai întâi, definim termenii și evităm concluziile grăbite.",
+        "Apoi analizăm un exemplu concret, din viața de zi cu zi.",
+        "Ce informație ne-ar ajuta să înțelegem mai bine această situație?",
+        "Privim subiectul și dintr-o a doua perspectivă, fără exagerări.",
+        "Atenție la diferența dintre o opinie și un fapt verificabil.",
+        "O explicație bună are surse clare și recunoaște incertitudinea.",
+        "Dacă aplicăm această idee, ce se schimbă în felul în care decidem?",
+        "Înainte să încheiem, recapitulăm întrebările importante.",
+        f"Aceasta a fost perspectiva lui {lead} asupra subiectului {topic}.",
+        "Ce întrebare ai vrea să explorăm în episodul următor?",
     ]
+    if item["content_type"] == "short15":
+        return [opening[0], opening[2], opening[-1]]
+    if item["content_type"] == "longform":
+        return opening + [f"Capitolul {i+1}: revenim la tema {topic}. " + opening[(i+3)%len(opening)] for i in range(24)]
+    return opening
 
 
 def _srt(lines: list[str], duration: int) -> str:
@@ -162,6 +190,34 @@ def _piper_audio(outdir: Path, text: str) -> Path | None:
     if proc.returncode or not dest.is_file() or dest.stat().st_size == 0:
         raise RuntimeError("Piper a eșuat. Verifică vocea locală și configurația.")
     return dest
+
+
+def _windows_sapi_audio(outdir: Path, text: str) -> Path | None:
+    """Optional offline fallback using built-in Windows speech; never a voice clone."""
+    if os.name != "nt" or os.getenv("BERRY_SAPI_TTS", "true").lower() != "true":
+        return None
+    ps = shutil.which("powershell.exe")
+    if not ps:
+        return None
+    script = outdir / "local_sapi.ps1"
+    input_text = outdir / "voice_input.txt"
+    output = outdir / "voice.wav"
+    input_text.write_text(text, encoding="utf-8-sig")
+    script.write_text("param([string]$TextFile, [string]$WaveFile)\n"
+        "Add-Type -AssemblyName System.Speech\n"
+        "$voice = New-Object System.Speech.Synthesis.SpeechSynthesizer\n"
+        "try {\n"
+        "  $voice.SetOutputToWaveFile($WaveFile)\n"
+        "  $voice.Speak([System.IO.File]::ReadAllText($TextFile, [System.Text.Encoding]::UTF8))\n"
+        "} finally { $voice.Dispose() }\n", encoding="utf-8")
+    try:
+        p = subprocess.run([ps, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File",
+                            str(script), str(input_text), str(output)], capture_output=True, timeout=180, check=False)
+        if p.returncode == 0 and output.is_file() and output.stat().st_size > 1000:
+            return output
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return None
 
 
 def _ffmpeg_render(outdir: Path, art: Path, duration: int, voice: Path | None) -> Path:
@@ -200,7 +256,9 @@ def _worker(job_id: int) -> None:
             output_root = Path(os.getenv("BERRY_OUTPUT_DIR", str(OUTPUT_ROOT))).resolve()
             outdir = output_root / f"job_{job_id:06d}"
             outdir.mkdir(parents=True, exist_ok=True)
-            art = STATIC / CHARACTER_ART[item["channel_id"]]
+            asset_root = Path(os.getenv("BERRY_ASSET_DIR", str(ROOT / "data" / "assets")))
+            user_art = asset_root / f"item_{item['id']}.webp"
+            art = user_art if user_art.is_file() else STATIC / CHARACTER_ART[item["channel_id"]]
             if not art.is_file():
                 raise FileNotFoundError("Imaginea concept a personajului lipsește")
             lines = _script_lines(item)
@@ -210,22 +268,41 @@ def _worker(job_id: int) -> None:
             shutil.copyfile(art, outdir / "character-concept.webp")
             if duration:
                 (outdir / "captions.srt").write_text(_srt(lines, duration), encoding="utf-8")
+            supplied = list(asset_root.glob(f"item_{item['id']}_soundtrack.*")) if asset_root.exists() else []
             voice = None
-            if duration and capabilities()["piper"]["ready"]:
+            music_supplied = bool(supplied)
+            if supplied:
+                voice = outdir / supplied[0].name
+                shutil.copyfile(supplied[0], voice)
+            elif duration and capabilities()["piper"]["ready"]:
                 voice = _piper_audio(outdir, " ".join(lines))
+            elif duration:
+                voice = _windows_sapi_audio(outdir, " ".join(lines))
             preview = None
-            if duration and capabilities()["ffmpeg"]["ready"]:
-                preview = _ffmpeg_render(outdir, art, duration, voice)
+            image_path = outdir / "final-image.png"
+            render_kind = "STATIC_CONCEPT_STORYBOARD"
+            if job["mode"] == "full":
+                from . import motion
+                motion._scene(art, item["channel_id"], item["topic"], lines[0], 0, image_path)
+                if duration and capabilities()["ffmpeg"]["ready"]:
+                    preview, _ = motion.render(outdir, art, item["channel_id"], item["topic"], lines, duration, voice)
+                    render_kind = "MOTION_GRAPHICS_LOCAL"
+            else:
+                if duration and capabilities()["ffmpeg"]["ready"]:
+                    preview = _ffmpeg_render(outdir, art, duration, voice)
             manifest = {
                 "item_id": item["id"], "job_id": job_id, "channel": item["channel_id"],
                 "character": LEADS[item["channel_id"]], "topic": item["topic"],
                 "content_type": item["content_type"], "target_duration_seconds": target,
                 "rendered_duration_seconds": duration if preview else 0,
-                "render_mode": job["mode"], "render_kind": "STATIC_CONCEPT_STORYBOARD",
-                "video_created": bool(preview), "voice_created": bool(voice),
-                "ai_animated": False, "music_generated": False, "published": False,
-                "qa_approved": False, "status_note": "Concept vizual static, nu video AI final și nu aprobare de publicare",
-                "files": [p.name for p in outdir.iterdir() if p.is_file()],
+                "render_mode": job["mode"], "render_kind": render_kind,
+                "video_created": bool(preview), "image_created": image_path.is_file() or art.is_file(),
+                "voice_created": bool(voice) and not music_supplied, "music_supplied": music_supplied,
+                "art_source": "USER_SUPPLIED" if user_art.is_file() else "BUNDLED_CONCEPT",
+                "ai_animated": False, "music_generated": False,
+                "published": False, "qa_approved": False,
+                "status_note": "Video motion graphics local, NU animație 3D AI și NU publicat" if render_kind == "MOTION_GRAPHICS_LOCAL" else "Concept static, nu video AI final și nu publicare",
+                "files": [p.name for p in outdir.iterdir() if p.is_file()] + ["manifest.json"],
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
             (outdir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -239,7 +316,7 @@ def _worker(job_id: int) -> None:
 
 def output_file(job_id: int, kind: Literal["video", "script", "subtitles", "manifest", "image", "voice"]) -> Path | None:
     names = {"video": "concept-preview.mp4", "script": "script.txt", "subtitles": "captions.srt",
-             "manifest": "manifest.json", "image": "character-concept.webp", "voice": "voice.wav"}
+             "manifest": "manifest.json", "image": "character-concept.webp", "voice": "voice.wav", "soundtrack": "soundtrack.wav"}
     job = get_job(job_id)
     if not job or job["status"] not in ("DONE", "PACKAGE_ONLY") or not job["output_relpath"]:
         return None
@@ -247,5 +324,12 @@ def output_file(job_id: int, kind: Literal["video", "script", "subtitles", "mani
     outdir = Path(job["output_relpath"]).resolve()
     if outdir.parent != root or outdir.name != f"job_{job_id:06d}":
         return None
+    if kind == "soundtrack":
+        found = list(outdir.glob(f"item_{job['item_id']}_soundtrack.*"))
+        return found[0] if found else None
+    if kind == "video" and (outdir / "motion-video.mp4").is_file():
+        return outdir / "motion-video.mp4"
+    if kind == "image" and (outdir / "final-image.png").is_file():
+        return outdir / "final-image.png"
     path = outdir / names[kind]
     return path if path.is_file() else None

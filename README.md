@@ -1,52 +1,15 @@
-# 🍓 BERRY AI AUTOPILOT
+# 🍓 BERRY AI AUTOPILOT — Local v1.0 RC
 
-**Versiune: 0.1 — nucleu local Windows / FastAPI + interfață web/PWA.**
+**Romanian documentation:** [README_RO.md](README_RO.md)
 
-> **Stadiu:** cod funcțional pentru planificare, propuneri SEO pe șabloane, aprobări, bugete propuse și Kill Switch. **Nu este aplicația finală:** generarea AI de imagini, videoclipuri, voci și muzică, publicarea pe rețelele sociale și accesul iPhone la distanță nu sunt încă integrate.
+A local-first FastAPI/SQLite/PWA editorial studio for five fruit-character channels. Includes content planning, SEO templates, optional local KoboldCpp, editable scripts, user art/audio uploads, FFmpeg motion-graphics videos, optional Piper or Windows SAPI speech, QA checks, manual batch approval, a local calendar, manual ZIP exports and SQLite backup.
 
-## Pornire locală pe Windows
+## One-click Windows launch
 
-1. Instalează Python **3.11 sau 3.12**.
-2. Descarcă acest repository și extrage-l într-un folder (de exemplu `C:\BERRY_AI`).
-3. Rulează `start_berry.bat`. Prima pornire instalează dependențele Python prin pip.
-4. Deschide `http://127.0.0.1:8765`.
+Double-click `LAUNCH_BERRY.cmd` after extracting the archive. The source launcher needs Python 3.11+ and installs free pip dependencies on first launch. An optional standalone Windows folder can be built using `BUILD_WINDOWS_EXE.cmd` on Windows; that executable has **not been tested in this Linux assembly environment**.
 
-Alternativ, din terminal:
+**Not yet included:** AI-generated cinematic 3D fruit animation, automatic singing/lipsync, ACE-Step AI music, integrated ComfyUI/WanGP model execution, automatic social posting, real analytics, cloud GPU, external server or remote phone access. Source ZIPs alone do not include model weights or validated GPU integrations.
 
-```powershell
-py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python -m uvicorn berry.app:app --host 127.0.0.1 --port 8765
-```
+No social tokens, cloud credentials, imported user media, weights or third-party source ZIPs are committed. Publishing and real spending remain disabled. The current GitHub repository is public: confirm rights for bundled concept art before redistribution.
 
-## Teste
-
-```powershell
-.venv\Scripts\python -m pip install -r requirements-dev.txt
-.venv\Scripts\python -m pytest -q
-```
-
-## Documentație
-
-- [Ghid complet în română](README_RO.md)
-- [Masterplan A–Z și linkuri GitHub](docs/MASTERPLAN_GITHUB_A_Z.md)
-- [Biblioteca componentelor externe](docs/EXTERNAL_COMPONENTS.md)
-- [Stadiu și pași de integrare](docs/STATUS_SI_ROADMAP.md)
-- [Publicare în GitHub](docs/INCARCARE_GITHUB.md)
-- [Securitate](SECURITY.md)
-- [Licențiere și proveniență](docs/LICENTE_SI_ASSETS.md)
-
-## Reguli de operare
-
-- **Local-first:** fără server extern, GPU închiriat sau conexiuni la conturi sociale în acest stadiu.
-- **Semi-Autopilot:** nicio publicare sau cheltuială fără aprobare explicită.
-- **Kill Switch:** activ inițial; în această versiune nici dezactivarea lui nu permite publicare reală.
-- Nu publica `.env`, baze de date, chei API, fișiere model, voci personale sau date ale conturilor.
-- Nu expune serviciul local pe Internet; ascultă doar pe `127.0.0.1`.
-
-## Notă privind licența
-
-Codul BERRY și documentația sunt separate de repository-urile externe, care **nu sunt incluse** aici. Nu este acordată implicit o licență open-source pentru codul BERRY; alege licența înainte de a face repository-ul public. Verifică separat drepturile pentru imagini, personaje și orice componente integrate ulterior.
-
-
-**One-click Windows launch:** double-click `LAUNCH_BERRY.cmd` (Python 3.11+ prerequisite). Local Media Studio creates storyboard assets and optional static FFmpeg previews, not final AI videos. See [README_RO.md](README_RO.md).
+Run tests with `python -m pytest -q` after installing `requirements.txt` and `requirements-dev.txt`. See [limitations](docs/FINALIZARE_SI_LIMITARI.md) and [security](SECURITY.md).

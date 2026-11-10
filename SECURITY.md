@@ -1,12 +1,12 @@
-# Securitate — BERRY AI AUTOPILOT
+# BERRY — Local Security Boundary
 
-Acest repository este un **prototip local**. Nu este configurat pentru Internet sau accesul mai multor utilizatori.
-
-- Folosește numai `127.0.0.1:8765` pe PC-ul local; nu modifica bind-ul la `0.0.0.0`.
-- Opțional, setează `BERRY_ACCESS_KEY` printr-o variabilă de mediu; cheia din antet nu înlocuiește autentificarea completă pentru acces remote.
-- Nu comite `.env`, parole, tokenuri OAuth, baze de date SQLite, fișiere de utilizator sau modele AI mari.
-- Nu conecta TikTok, YouTube, Instagram, GPU cloud sau server extern înainte de etapa finală și aprobare.
-- Înainte de acces iPhone/Internet: autentificare robustă, TLS, protecție CSRF, limitare cereri, gestionarea secretelor, backup, teste de securitate și permisiuni.
-- Nu accepta fișiere sau pluginuri externe fără verificarea provenienței, licenței și codului.
-
-Pentru probleme de securitate, nu publica date sensibile în issues publice; folosește un canal privat stabilit de proprietarul repository-ului.
+- Runs on `127.0.0.1:8765` only. Do not bind to `0.0.0.0` or forward the port.
+- `TrustedHostMiddleware` restricts Host; unsafe API methods reject foreign Origin.
+- Set a strong `BERRY_ACCESS_KEY` if untrusted local users/processes may access the browser.
+- This is **not** production-grade remote authentication. Before phone/network access, implement session auth, TLS, CSRF tokens, rate limits, role permissions and secrets management.
+- No real social API, OAuth, remote server, paid promotion or cloud GPU code is active.
+- User-uploaded art/audio and custom scripts stay in `data/`, ignored by Git; limits and format checks apply, but imported content must be reviewed for rights and safety.
+- The repository is public; do not commit database files, generated outputs, API keys, personal content, ZIPs or model weights.
+- Bundled artwork is conceptual; distribution rights must be confirmed before commercial/public redistribution.
+- GitHub ZIP source dependencies are **not** auto-executed; inspect licenses, hashes, dependency trees and models before installing.
+- The local ZIP export is for **manual** posting and cannot bypass human QA + approval.

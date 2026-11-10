@@ -1,9 +1,10 @@
-# Validare v0.1 — 9 noiembrie 2026
+# Validation — BERRY v1.0 RC
 
-- 10 teste API în `tests/test_app.py`: **10/10 au trecut** în container Linux Python 3.13.
-- Verificare statică JavaScript `node --check`: **trecută**.
-- HTTP static `/`, JS, CSS, manifest, logo și imagini: **200 OK** în test client.
-- Au fost generate previzualizări desktop și iPhone ale designului, pentru controlul aspectului responsive; acestea sunt **mock-up static**, nu dovadă a funcționării PWA pe iOS.
-- Launcherul `.bat` și accesul de pe iPhone NU au fost testate pe hardware Windows/iOS real.
-- Fără conturi conectate, fără publicări sau cheltuieli, fără GPU/cloud.
-- GIF/video AI 3D și muzica originală sunt etape viitoare; pipeline-ul complet nu a fost testat.
+- 20/20 Python tests passed on Linux (FastAPI, SQLite, SEO, QA, approvals, media rendering, calendar, exports, backup, origin/host security).
+- Node.js `node --check static/app.js` passed.
+- Python `compileall` passed.
+- FFmpeg motion graphics FULL 15 seconds produced a valid MP4 in a temporary test directory.
+- No real social account, GPU cloud or remote server used.
+- **Not tested**: Windows `.cmd` launcher, PyInstaller executable, Piper voice on Windows, Windows SAPI, 90/300-second render on the user's PC, AI model weights or full cinematic 3D animation.
+
+The above is an implementation/QA milestone, not certification of all requested AI media generation.

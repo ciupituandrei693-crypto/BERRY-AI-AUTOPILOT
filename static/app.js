@@ -8,11 +8,11 @@ const types={main90:'Video 90s',short15:'Short 15s',image:'Imagine',longform:'Yo
 const key=()=>sessionStorage.getItem('berry_key')||'';
 async function api(url,method='GET',body){const opts={method,headers:{}};if(key())opts.headers['X-BERRY-KEY']=key();if(body!==undefined){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}const r=await fetch('/api'+url,opts);if(r.status===401){const k=prompt('Introdu BERRY_ACCESS_KEY configurată local:');if(k){sessionStorage.setItem('berry_key',k);return api(url,method,body)}}if(!r.ok){let t;try{t=await r.json()}catch{t={detail:r.statusText}};throw new Error(t.detail||'Eroare')}if(r.headers.get('content-type')?.includes('application/json'))return r.json();return r.text()}
 let toastTimer;function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
-function go(page){if(!$('#page-'+page))return;state.view=page;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#view-title').textContent=({overview:'Prezentare generală',channels:'Biblioteca de personaje',planner:'Content Planner',seo:'SEO Studio',approvals:'Approval Center',budgets:'Budget Guard',integrations:'Integrări & securitate',studio:'Media Studio'})[page];window.scrollTo({top:0,behavior:'smooth'})}
+function go(page){if(!$('#page-'+page))return;state.view=page;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#view-title').textContent=({overview:'Prezentare generală',channels:'Biblioteca de personaje',planner:'Content Planner',seo:'SEO Studio',approvals:'Approval Center',budgets:'Budget Guard',integrations:'Integrări & securitate',studio:'Media Studio',qa:'Quality & Rights QA',calendar:'Calendar & Export'})[page];window.scrollTo({top:0,behavior:'smooth'})}
 window.go=go;
 async function load(){try{const [status,channels,characters,items,batches,budget,audit]=await Promise.all([api('/status'),api('/channels'),api('/characters'),api('/items'),api('/batches'),api('/budget'),api('/audit')]);Object.assign(state,{status,channels,characters,items,batches,budget,audit});render()}catch(e){toast(e.message)}}
 function opts(){for(const id of ['#new-channel','#seo-channel','#filter-channel','#spend-channel']){const sel=$(id),old=sel.value,empty=id.includes('filter')?'<option value="">Toate canalele</option>':id.includes('spend')?'<option value="">Niciun canal (pentru GPU/general)</option>':'';sel.innerHTML=empty+state.channels.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');if([...sel.options].some(o=>o.value===old))sel.value=old}}
-function render(){opts();$('#metric-channels').textContent=state.status.channels;$('#metric-items').textContent=state.status.items;$('#metric-batches').textContent=state.status.pending_batches;$('#kill-overview').textContent=state.status.kill_switch?'Activ':'Inactiv';$('#kill-overview').style.color=state.status.kill_switch?'#62dbb4':'#efa5af';$('#mode-pill').textContent=state.status.mode.replaceAll('_',' ');$('#kill-toggle').textContent=state.status.kill_switch?'Dezactivează comutatorul':'ACTIVEAZĂ KILL SWITCH';renderChannels();renderItems();renderBatches();renderBudget();renderAudit();renderStudioItems()}
+function render(){opts();$('#metric-channels').textContent=state.status.channels;$('#metric-items').textContent=state.status.items;$('#metric-batches').textContent=state.status.pending_batches;$('#kill-overview').textContent=state.status.kill_switch?'Activ':'Inactiv';$('#kill-overview').style.color=state.status.kill_switch?'#62dbb4':'#efa5af';$('#mode-pill').textContent=state.status.mode.replaceAll('_',' ');$('#kill-toggle').textContent=state.status.kill_switch?'Dezactivează comutatorul':'ACTIVEAZĂ KILL SWITCH';renderChannels();renderItems();renderBatches();renderBudget();renderAudit();renderStudioItems();renderWorkflowSelectors()}
 function renderChannels(){const c=state.channels;$('#overview-channels').innerHTML=c.map(x=>`<div class="channel-card"><img src="/static/img/${images[x.id]}" alt="${esc(x.lead)}"><div class="content"><h3 style="color:${esc(x.color)}">${esc(x.name)}</h3><div class="niche">${esc(x.niche)}</div><div class="lead">● ${esc(x.lead)}</div></div></div>`).join('');$('#channel-detail').innerHTML=c.map(x=>`<div class="profile"><img src="/static/img/${images[x.id]}" alt="${esc(x.lead)}"><div><h3 style="color:${esc(x.color)}">${esc(x.name)}</h3><div class="meta">${esc(x.niche)} · ${esc(x.lead)}</div><p>${esc(x.description)}</p>${state.characters.filter(a=>a.channel_id===x.id).map(a=>`<p><strong>${esc(a.name)}</strong> — ${esc(a.appearance)}<br><span class="muted">${esc(a.personality)} · Voce: ${esc(a.voice)}</span></p>`).join('')}</div></div>`).join('')}
 function renderItems(){const filter=$('#filter-channel').value;const rows=state.items.filter(x=>!filter||x.channel_id===filter);$('#items-list').innerHTML=rows.length?rows.map(x=>`<label class="item-row"><input type="checkbox" class="item-select" value="${x.id}" ${x.status!=='DRAFT'?'disabled':''}><span class="item-main"><strong>${esc(x.title)}</strong><small>${esc(names[x.channel_id])} · ${esc(types[x.content_type])} · ${esc(x.status)}</small><small>${esc(x.topic)}</small></span><span class="tag">#${x.id}</span></label>`).join(''):'<div class="empty">Nu există materiale. Creează primul episod în stânga.</div>'}
 function renderBatches(){$('#batches-list').innerHTML=state.batches.length?state.batches.map(b=>`<div class="batch-panel"><div class="row-between"><h3>📋 ${esc(b.name)}</h3><span class="pill neutral">${esc(b.status)}</span></div><small class="muted">Lot #${b.id} · ${b.items.length} materiale · ${esc(b.created_at)}</small><details><summary>Conținutul lotului</summary>${b.items.map(x=>`<div>${esc(names[x.channel_id])} — ${esc(x.title)}</div>`).join('')}</details>${b.status==='PENDING'?`<div class="row-between"><span class="muted small">Aprobare locală, nu publicare</span><div class="buttons"><button class="btn small outline" onclick="changeBatch(${b.id},'reject')">Respinge</button><button class="btn small primary" onclick="changeBatch(${b.id},'approve')">Aprobă lotul</button></div></div>`:''}</div>`).join(''):'<div class="empty">Niciun lot. Selectează materiale DRAFT din Content Planner și trimite-le la aprobare.</div>'}
@@ -44,8 +44,8 @@ async function refreshStudio(){
   $('#studio-capabilities').innerHTML=Object.entries(caps.components).map(([id,c])=>`<div class="studio-component"><span>${c.ready?'🟢':'⚪'} <strong>${esc(id.replaceAll('_',' '))}</strong></span><small>${esc(c.detail)}</small></div>`).join('');
   $('#studio-jobs').innerHTML=jobs.length?jobs.map(j=>{
     const files=j.result?.files||[];
-    const kinds=[['video','concept-preview.mp4','🎞 MP4'],['script','script.txt','📝 Scenariu'],['subtitles','captions.srt','💬 SRT'],['image','character-concept.webp','🖼 Imagine'],['voice','voice.wav','🔊 Voce'],['manifest','manifest.json','📋 Manifest']];
-    const links=kinds.filter(([kind,filename])=>files.includes(filename)).map(([kind,filename,label])=>`<button type="button" class="btn outline small" onclick="downloadStudio(${j.id},'${kind}','${filename}')">${label}</button>`).join(' ');
+    const kinds=[['video','concept-preview.mp4','🎞 MP4'],['video','motion-video.mp4','🎞 MP4 FULL'],['script','script.txt','📝 Scenariu'],['subtitles','captions.srt','💬 SRT'],['image','character-concept.webp','🖼 Imagine'],['image','final-image.png','🖼 PNG final'],['soundtrack','soundtrack.mp3','🎵 Audio'],['soundtrack','soundtrack.wav','🎵 Audio'],['voice','voice.wav','🔊 Voce'],['manifest','manifest.json','📋 Manifest']];
+    const links=kinds.filter(([kind,filename])=>files.includes(filename) || (kind==='soundtrack' && files.some(f=>f.includes('_soundtrack.')))).map(([kind,filename,label])=>`<button type="button" class="btn outline small" onclick="downloadStudio(${j.id},'${kind}','${filename}')">${label}</button>`).join(' ');
     return `<div class="studio-job"><div class="row-between"><strong>#${j.id} · ${esc(j.title)}</strong><span class="pill neutral">${esc(j.status)}</span></div><small>${esc(j.channel_id)} · ${esc(j.mode)} · ${esc(j.created_at)}</small><p class="muted small">${esc(j.error||j.result?.status_note||'Randare în curs...')}</p><div class="studio-links">${links}</div></div>`;
   }).join(''):'<div class="empty">Nu există randări. Selectează un material DRAFT și apasă Generează local.</div>';
  }catch(e){toast(e.message)}
@@ -67,5 +67,57 @@ $('#studio-form').onsubmit=async e=>{
 $('#studio-refresh').onclick=refreshStudio;
 const originalGo=go;
 go=function(page){originalGo(page);if(page==='studio')refreshStudio()};window.go=go;
+// ---- BERRY 1.0 RC: QA, calendar, safe exports and user-supplied assets ----
+function renderWorkflowSelectors(){
+ for(const [selector, filter] of [['#qa-item',x=>true],['#calendar-item',x=>x.status==='APPROVED_NOT_PUBLISHED']]){
+  const el=$(selector);if(!el)continue;const previous=el.value;
+  el.innerHTML=state.items.filter(filter).map(x=>`<option value="${x.id}">#${x.id} · ${esc(names[x.channel_id])} · ${esc(x.title)}</option>`).join('')||'<option value="">Nu există materiale eligibile</option>';
+  if([...el.options].some(o=>o.value===previous))el.value=previous;
+ }
+}
+async function refreshQA(){
+ const id=Number($('#qa-item').value);if(!id)return;
+ try{
+  const {review,report}=await api(`/qa/${id}`);
+  for(const [field,id] of [['facts_checked','#qa-facts'],['visual_rights','#qa-visual'],['voice_rights','#qa-voice'],['music_rights','#qa-music'],['disclosure_checked','#qa-disclosure']])$(id).checked=Boolean(review[field]);
+  $('#qa-notes').value=review.notes||'';
+  showQA(report);
+ }catch(e){toast(e.message)}
+}
+function showQA(r){
+ $('#qa-results').innerHTML=`<div class="studio-job"><strong>${r.passed?'🟢 QA PASSED':'🟠 QA INCOMPLET'}</strong><p class="muted small">Material #${r.item_id} · randare #${r.job_id||'—'}</p><h4>Blocaje</h4>${r.reasons.length?r.reasons.map(x=>`<div class="qa-line">⛔ ${esc(x)}</div>`).join(''):'<p>Nu există blocaje automate.</p>'}<h4>Atenționări</h4>${r.warnings.length?r.warnings.map(x=>`<div class="qa-line">⚠️ ${esc(x)}</div>`).join(''):'<p>Nu există avertizări.</p>'}<p class="muted small">Acest QA nu certifică legal drepturile și nu publică nimic.</p></div>`;
+}
+$('#qa-item').onchange=refreshQA;
+$('#qa-form').onsubmit=async e=>{
+ e.preventDefault();const id=Number($('#qa-item').value);if(!id)return toast('Alege un material');
+ const b={facts_checked:$('#qa-facts').checked,visual_rights:$('#qa-visual').checked,voice_rights:$('#qa-voice').checked,music_rights:$('#qa-music').checked,disclosure_checked:$('#qa-disclosure').checked,notes:$('#qa-notes').value};
+ try{await api(`/qa/${id}/checks`,'POST',b);toast('Verificările au fost salvate');await refreshQA()}catch(e){toast(e.message)}
+};
+$('#qa-run').onclick=async()=>{const id=Number($('#qa-item').value);if(!id)return toast('Alege un material');try{const r=await api(`/qa/${id}/run`,'POST');showQA(r);toast(r.passed?'QA trecut':'QA incomplet; vezi blocajele')}catch(e){toast(e.message)}};
+async function fetchDownload(path,filename){
+ const headers={};if(key())headers['X-BERRY-KEY']=key();
+ const r=await fetch('/api'+path,{headers});if(!r.ok){let j;try{j=await r.json()}catch{}throw Error(j?.detail||`HTTP ${r.status}`)}
+ const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+async function refreshCalendar(){
+ try{const rows=await api('/calendar');$('#calendar-list').innerHTML=rows.length?rows.map(x=>`<div class="studio-job"><div class="row-between"><strong>${esc(x.title)}</strong><span class="pill neutral">${esc(x.status)}</span></div><p class="muted small">${esc(x.platform)} · ${esc(new Date(x.scheduled_at).toLocaleString('ro-RO'))} · #${x.item_id}</p>${x.qa_still_valid===false?'<p>⚠️ QA a fost modificat. Revalidare necesară.</p>':''}<div class="buttons">${x.status!=='CANCELLED'?`<button class="btn outline small" onclick="downloadSchedule(${x.id})">↓ Pachet ZIP</button>`:''}${x.status==='SCHEDULED_LOCAL'?`<button class="btn outline small" onclick="cancelSchedule(${x.id})">Anulează</button>`:''}</div></div>`).join(''):'<div class="empty">Nicio programare. Mai întâi: FULL render → QA → aprobare umană.</div>'}catch(e){toast(e.message)}
+}
+window.downloadSchedule=async id=>{try{await fetchDownload(`/calendar/${id}/package`,`BERRY_PUBLICATION_${id}.zip`);toast('Pachet local descărcat, NU publicat');await refreshCalendar()}catch(e){toast(e.message)}};
+window.cancelSchedule=async id=>{if(!confirm('Anulezi programarea locală?'))return;try{await api(`/calendar/${id}/cancel`,'POST');await refreshCalendar();toast('Programare anulată')}catch(e){toast(e.message)}};
+$('#calendar-form').onsubmit=async e=>{e.preventDefault();const item_id=Number($('#calendar-item').value),v=$('#calendar-time').value;if(!item_id||!v)return toast('Selectează un material aprobat și o dată');
+ try{await api('/calendar','POST',{item_id,platform:$('#calendar-platform').value,scheduled_at:new Date(v).toISOString()});toast('Programat local. Nu se publică automat.');await refreshCalendar()}catch(e){toast(e.message)}};
+$('#calendar-refresh').onclick=refreshCalendar;
+$('#backup-download').onclick=async()=>{try{await fetchDownload('/backup','BERRY_BACKUP.zip');toast('Backup descărcat; păstrează-l privat')}catch(e){toast(e.message)}};
+async function uploadAsset(inputId,endpoint){const item_id=Number($('#studio-item').value),file=$(inputId).files[0];if(!item_id||!file)return toast('Selectează un material și un fișier');const form=new FormData();form.append('file',file);
+ const headers={};if(key())headers['X-BERRY-KEY']=key();
+ try{const r=await fetch(`/api/items/${item_id}/${endpoint}`,{method:'POST',headers,body:form});const j=await r.json();if(!r.ok)throw Error(j.detail||'Import eșuat');toast(`Fișier salvat local: ${j.filename}. Randează din nou FULL.`);$(inputId).value='';await refreshStudio()}catch(e){toast(e.message)}
+}
+$('#upload-art').onclick=()=>uploadAsset('#studio-art','art');
+$('#upload-audio').onclick=()=>uploadAsset('#studio-audio','soundtrack');
+async function loadScript(){const id=Number($('#studio-item').value);if(!id){$('#studio-script').value='';return}try{const r=await api(`/items/${id}/script`);$('#studio-script').value=r.text;$('#studio-script').disabled=!r.editable;$('#studio-script-save').disabled=!r.editable}catch(e){toast(e.message)}}
+$('#studio-item').onchange=loadScript;
+$('#studio-script-save').onclick=async()=>{const id=Number($('#studio-item').value);if(!id)return toast('Alege un material');try{await api(`/items/${id}/script`,'POST',{text:$('#studio-script').value});toast('Scenariu salvat. Randează din nou FULL.');await refreshStudio()}catch(e){toast(e.message)}};
+$('#studio-next').onclick=async()=>{try{const r=await api('/studio/render-next','POST');toast(r.job_id?`Randare FULL #${r.job_id} pornită`:'Nu există schițe de randat');await refreshStudio()}catch(e){toast(e.message)}};
+const priorGo=go;go=function(page){priorGo(page);if(page==='qa')refreshQA();if(page==='calendar')refreshCalendar();if(page==='studio')loadScript()};window.go=go;
 load();
 if('serviceWorker'  in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});

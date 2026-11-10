@@ -1,106 +1,37 @@
-# 🍓 BERRY AI AUTOPILOT — LOCAL V0.2
+# 🍓 BERRY AI AUTOPILOT — v1.0 RC (LOCAL)
 
-**Aplicație reală de planificare, SEO și aprobare locală**, cu backend FastAPI, interfață web responsive/PWA și bază SQLite. Rulează pe Windows fără server extern, fără GPU cloud și fără abonament. Proiectul este un **nucleu funcțional**, NU încă motor complet de producție AI video sau programator de postări.
+**Status real:** aplicație locală de planificare, SEO, generare de pachete media, montaj motion graphics, verificare QA, aprobare, calendar și export manual. **Nu** este încă o platformă de animație 3D AI completă și **nu** publică automat pe TikTok, Instagram sau YouTube.
 
-## Pornire pe Windows
+## Un singur buton de lansare
 
-1. Instalează **Python 3.11/3.12** dacă nu există, bifând `Add Python to PATH`.
-2. Dezarhivează fișierul ZIP într-un folder simplu, ex. `C:\BERRY_AI`.
-3. Dublu-click pe **`LAUNCH_BERRY.cmd`** (un singur lansator; `start_berry.bat` rămâne alias compatibil). La prima pornire descarcă pachetele Python gratuite (`fastapi`, `uvicorn`, `pydantic`) folosind internetul. Ulterior rulează local.
-4. Browserul se deschide automat după ce serverul răspunde la **http://127.0.0.1:8765**.
-5. Lasă fereastra neagră deschisă cât timp folosești aplicația. Închizi cu `Ctrl+C`.
+Pe Windows, dezarhivează pachetul și dă dublu-click pe **`LAUNCH_BERRY.cmd`**. Dacă ai compilat aplicația, butonul pornește `dist/BERRY_AI_AUTOPILOT/BERRY_AI_AUTOPILOT.exe`. Altfel pornește versiunea Python, creând automat `.venv` și instalând bibliotecile gratuite la prima utilizare. Pentru prima lansare din sursă trebuie să ai **Python 3.11+** instalat și acces la internet pentru pachetele pip. Ulterior motorul aplicației rulează local la **http://127.0.0.1:8765**.
 
-Alternativ: `python -m pip install -r requirements.txt` și `python -m uvicorn berry.app:app --host 127.0.0.1 --port 8765`.
+**Pentru un executabil fără Python la utilizator:** rulează **`BUILD_WINDOWS_EXE.cmd` o singură dată pe un PC Windows cu Python**, apoi distribuie întreg folderul `dist/BERRY_AI_AUTOPILOT`. Acest build Windows este **pregătit, dar nu a putut fi verificat în mediul Linux**. Nu promitem un `.exe` autonom testat înainte de rularea scriptului pe Windows.
 
-### Cum folosești
+## Fluxul complet disponibil local
 
-1. **Canale & personaje**: verifică FRUIT MIND/MUREX, FRUIT WEALTH/BANAN, FRUIT BEATS/AFINA STAR, FRUIT LAB/AFINA (afină albastră cercetătoare) și FRUIT HEART/EMERA & CHERO.
-2. **Content Planner**: poți crea **un pachet editorial pentru o zi (25 fișe DRAFT)** sau adaugă o fișă de episod 90s, Short 15s, imagine sau poveste YouTube 5–10 min. Primește automat un pachet SEO **pe bază de șabloane**.
-3. **SEO Studio**: previzualizează descrieri personalizate pentru YouTube, TikTok, Instagram, hook, CTA, hashtaguri și prompturi.
-4. **Content Planner → selectează DRAFT → creează lot**.
-5. **Approval Center**: aprobă lotul ori respinge. Aprobarea = `APPROVED_NOT_PUBLISHED`. Nu se transmit postări.
-6. **Bugete**: adaugă propuneri GPU sau reclamă **fără plată și fără autorizarea de cheltuire**.
-7. **Integrări**: vezi Kill Switch, activ implicit, și conectorii marcați neconectați. Jurnalizează modificările.
-8. Poți exporta catalogul de conținut în CSV.
+1. **Content Planner:** planifică 25 de fișe/zi lucrătoare (5×90s, 5×15s, 15 imagini) pentru cele cinci canale; fișe suplimentare YouTube 5–10 min se pot crea separat.
+2. **SEO Studio:** titluri, hook, descrieri TikTok/Instagram/YouTube, hashtaguri și prompturi. Șabloane locale; KoboldCpp poate genera text dacă un model GGUF este instalat și pornit separat.
+3. **Media Studio:** alege DRAFT, editează scenariul, încarcă imaginea și/sau audio proprii, apasă **FULL** pentru un MP4 cu patru scene și mișcare de cameră, imagine PNG, subtitrări SRT și manifest. `preview` produce doar un clip static scurt. Pentru video este necesar FFmpeg; `imageio-ffmpeg` îl aduce automat ca dependență gratuită la prima instalare. Pe Windows, dacă nu ai Piper configurat, poate folosi vocea offline SAPI (calitatea depinde de vocile Windows).
+4. **Quality & Rights QA:** confirmă manual verificarea faptelor, drepturile asupra imaginilor, vocii, muzicii și cerințele platformei. Randarea FULL și toate confirmările sunt obligatorii înainte de programare.
+5. **Approval Center:** trimite fișele DRAFT într-un lot și aprobă-le manual. Aprobarea **nu** înseamnă publicare.
+6. **Calendar & Export:** programează local materialele aprobate cu QA valid, apoi descarcă un ZIP cu video, imagine, subtitrări, scenariu, SEO și raport QA pentru **publicare manuală**.
+7. **Backup:** descarcă baza SQLite într-o arhivă ZIP. Fișierul este privat și nu trebuie pus pe GitHub.
 
-### Ce funcționează efectiv acum
+## Ce NU este finalizat / nu poate fi activat fără modele sau permisiuni
 
-- 5 canale seed + 9 personaje; grafici de referință incluse;
-- creare și stocare persistentă de fișe media în SQLite; generator de plan zilnic cu 25 fișe DRAFT în zilele lucrătoare;
-- generare deterministă de **texte-propunere SEO** și prompturi vizuale;
-- grupare în loturi, aprobare/respingere, audit;
-- registru de propuneri de cost, control Kill Switch;
-- interfață responsive/PWA și export CSV;
-- două utilitare opționale locale pentru creare Short 15s și extragere 3 imagini dintr-un videoclip existent (necesită FFmpeg instalat separat);
-- **Media Studio v0.2**: pachete de storyboard (scenariu, subtitrări SRT, imagine concept, manifest) și **previzualizare MP4 statică** dacă FFmpeg este instalat;
-- **coadă de randare locală**, jurnal de rezultate, descărcarea fișierelor și verificarea componentelor opționale.
+- Animație 3D AI cinematică cu rigging și lipsync real pentru fructe: **NU**. Motion graphics cu patru scene este o alternativă locală funcțională, nu echivalentul ei.
+- Generare de imagini AI cu ComfyUI, video AI cu WanGP, voce Chatterbox, muzică ACE-Step și lip sync MuseTalk/LatentSync: **NU sunt integrate ca motoare executabile**. Arhivele sursă nu includ automat modelele/weights și dependențele necesare.
+- Piese originale cântate de un fruct: nu sunt generate automat. Pentru FRUIT BEATS, importă o piesă originală proprie; QA blochează exportul fără ea. Lip sync pentru personaj nu este implementat.
+- Publicare automată, autentificare TikTok/Instagram/YouTube, analitice reale, promovare plătită: **NU**. Acestea sunt rezervate ultimei etape, cu aprobare separată.
+- Server extern, GPU cloud, acces iPhone din afara PC-ului: **NU**. PWA este responsive, dar `127.0.0.1` este accesibil doar de pe PC-ul local.
 
-### Ce NU funcționează încă
+## Siguranță și costuri
 
-- Nu există generare AI de imagine/video 3D sau melodii AI; grafica inclusă este doar concept de personaj. **MP4-ul v0.2 este o previzualizare statică, nu animație AI.**
-- Nu există conectare de conturi Google/Meta/TikTok, nicio publicare API și niciun marketing plătit.
-- Nu există model local GGUF instalat în aplicație. Dacă ai deja KoboldCpp pornit pe `http://127.0.0.1:5001`, butonul „Încearcă AI local” din SEO Studio poate genera text cu modelul tău (modelele și prompturile trebuie testate).
-- Nu există actualizare automată a trendurilor și nici SEO bazat pe metrici reale.
-- Nu există server extern, închiriere GPU sau acces remote iPhone configurat.
-- Nu există plăți automate. `$250 + $500 = $750` reprezintă limitele de **planificare**, fără garanția că vor acoperi întreaga producție.
+Backendul ascultă exclusiv pe `127.0.0.1`. API-ul verifică origin/host, folosește antete de securitate, nu execută shell cu textul utilizatorului, limitează importurile și nu stochează tokenuri sociale. Pentru protecție suplimentară poți configura `BERRY_ACCESS_KEY` ca variabilă de mediu. **Nu expune portul 8765 pe Internet**. Kill Switch începe ACTIV și nicio publicare nu este posibilă în această versiune. Bugetele de 250 USD producție + 500 USD promovare sunt estimări de plan, nu cheltuieli efectuate.
 
-## iOS și aplicația universală
+## Testare și dezvoltare
 
-Frontendul este **responsive și are manifest PWA**, dar acum serverul ascultă **doar 127.0.0.1**, așa încât iPhone-ul nu poate intra încă direct. Am respectat cerința să lăsăm **serverul și conectivitatea externă la final**. După securizarea prin HTTPS, autentificare și conexiune privată (ex. Tailscale), va fi accesibil din Safari și poate fi adăugat pe ecranul principal. **Nu expune portul public pe Internet în această etapă.**
+`python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. Testele rulează cu baze SQLite temporare și fără servicii cloud. Versiunea v1.0 RC a trecut 19 teste automate în mediul Linux de asamblare; **testul final pe Windows este necesar**.
 
-## Securitate
-
-- Programul nu face apeluri externe automate în utilizare. Numai prima instalare `pip` necesită internet.
-- API-ul e disponibil exclusiv pe localhost. Opțional poți seta variabila `BERRY_ACCESS_KEY` înainte de pornire; interfața va cere cheia. Nu salva parole sociale în fișierele proiectului.
-- Kill Switch pornește ACTIV, iar publicarea reală este *inexistentă* chiar dacă îl dezactivezi.
-- Auditul este salvat în `data/berry.sqlite3`. Nu include parole.
-- Nu sincroniza folderul `data` cu servicii publice sau repository Git.
-- Înainte de orice utilizare multi-device sau prin Internet trebuie adăugată autentificare reală, HTTPS, CSRF protection, rate limiting, backup și rotație de secrete.
-
-## Formatul editorial aprobat
-
-5 canale × [1 videoclip 90s + 3 imagini + 1 Short 15s] în fiecare zi lucrătoare; povești YouTube de 5–10 min pe calendar separat, câte una pe nișă/săptămână ca ipoteză de test. Piesa canalului FRUIT BEATS va fi **originală**, un singur solist-fruct pe episod. Promovare: 100 USD/canal/lună, total 500; producție: țintă 250 USD/lună (nevalidată).
-
-## Roadmap: local până la final
-
-**Faza 1 – inclusă în arhivă:** structură backend, bază de date, design responsive/PWA, character bible, planner, SEO template, aprobări, Kill Switch.
-
-**Faza 2 – local, începută în v0.2:** FFmpeg pentru previzualizări statice, fișiere storyboard, coadă de randare, integrare opțională Piper TTS dacă există executabilul și modelul de voce; KoboldCpp rămâne un conector opțional, fără model inclus. VoiceStudio/Blender/ComfyUI și celelalte motoare AI necesită integrare și teste ulterioare. Nu porni niciun serviciu cloud.
-
-**Faza 3 – local:** integrare grafică Blender, șabloane video HyperFrames, versiune de producție cu jurnalizare, QA automat și testare licențe.
-
-**Faza 4 – local:** autentificare întărită, teste de securitate, PWA pregătită pentru acces privat și gestionare sincronizată a proiectelor.
-
-**Faza 5 – ULTIMA:** numai după aprobare explicită conectăm server extern, GPU închiriat și conturile TikTok/Instagram/YouTube prin API-uri oficiale. Nicio activare automată, nicio cheltuială implicită.
-
-## Dezvoltare și teste
-
-`python -m pip install pytest httpx` (doar pentru teste); apoi `python -m pytest -q`. Pentru arhitectură și integrări GitHub, vezi `LINKURI_GITHUB.md`.
-
-### Structura fișierelor
-
-- `berry/app.py` — API FastAPI
-- `berry/db.py` — SQLite și date de bază
-- `berry/seo.py` — șabloane SEO și adaptor opțional KoboldCpp
-- `static/` — UI/PWA
-- `data/` — baza locală (creată la prima pornire)
-- `tools/` — FFmpeg local
-- `tests/` — teste automate
-- `LAUNCH_BERRY.cmd` — **un singur lansator Windows**; `start_berry.bat` — alias de compatibilitate
-- `berry/studio.py` — coadă de randare, fișiere storyboard, FFmpeg, adaptor opțional Piper
-- `tools/open_when_ready.ps1` — deschide browserul după pornirea serverului
-- `docs/ASSEMBLY_V02.md` — stare verificată, limite și pași următori
-
-**Licență:** codul nou din această arhivă este oferit pentru utilizarea ta în proiectul BERRY; nu include cod copiat din proiectele externe enumerate. Licențele proiectelor externe trebuie verificate separat înaintea integrării.
-
-## Media Studio v0.2 — test rapid
-
-1. Deschide **Content Planner** și creează un material DRAFT (de exemplu FRUIT LAB — AFINA).
-2. Deschide **Media Studio**, alege materialul și apasă **Generează local**.
-3. La **Randări și fișiere**, descarcă scenariul `.txt`, subtitrările `.srt`, imaginea concept și manifestul `.json`.
-4. Dacă `ffmpeg.exe` este în PATH sau `BERRY_FFMPEG_PATH` este configurată, primești și un **MP4 concept static**. Dacă nu, primești doar pachetul de producție, fără video.
-5. Pentru TTS opțional: setează `BERRY_PIPER_PATH` și `BERRY_PIPER_MODEL` către fișiere locale valide; aplicația nu descarcă modele.
-
-**Un singur click ≠ fără prerechizite:** în această etapă este necesar Python 3.11+ pe Windows. Prima pornire instalează gratuit pachetele din `requirements.txt` într-un mediu local `.venv` (necesită Internet pentru pip). Un `.exe` Windows complet autonom nu poate fi compilat și verificat din mediul Linux folosit pentru asamblare; se va construi/testa pe Windows în etapa de împachetare.
-
-**Nicio componentă din ZIP-urile externe nu este copiată automat în acest repository public.** Integrarea lor va necesita audit de licențe, compatibilitate și modele. Vezi `docs/ASSEMBLY_V02.md`.
+Proiectul nu include ZIP-urile externe, weights, tokenuri, date locale sau fișierele importate de utilizator. Consultă `docs/FINALIZARE_SI_LIMITARI.md`, `SECURITY.md` și `LINKURI_GITHUB.md`.

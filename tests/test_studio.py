@@ -32,7 +32,7 @@ def test_capabilities_are_local_and_no_cloud(client):
     assert r.status_code == 200
     body = r.json()
     assert body['local_only'] and not body['social_posting'] and not body['cloud_gpu']
-    assert body['render_kind'] == 'STATIC_CONCEPT_STORYBOARD'
+    assert body['render_kind'] == 'STATIC_PREVIEW_OR_FULL_MOTION_GRAPHICS'
     assert body['components']['external_social']['ready'] is False
 
 

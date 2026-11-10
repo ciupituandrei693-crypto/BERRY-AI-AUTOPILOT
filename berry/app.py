@@ -6,18 +6,20 @@ import io
 import json
 import os
 import sqlite3
+import io
 from contextlib import asynccontextmanager
 from datetime import date
 from pathlib import Path
 from typing import Literal
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio
+from . import studio, workflow
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -28,15 +30,22 @@ KEY = os.environ.get('BERRY_ACCESS_KEY','')
 async def lifespan(app:FastAPI):
     db.init_db()
     studio.init_jobs()
+    workflow.init()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='0.2.0',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='1.0.0-rc1',lifespan=lifespan)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
 
 @app.middleware('http')
 async def security_headers(request:Request,call_next):
+    if request.url.path.startswith('/api/') and request.method not in ('GET', 'HEAD', 'OPTIONS'):
+        origin = request.headers.get('origin')
+        if origin and origin not in (f'http://{request.headers.get("host", "")}', f'https://{request.headers.get("host", "")}'):
+            return JSONResponse({'detail': 'Origine nepermisă pentru operație locală'}, status_code=403)
     resp=await call_next(request)
     resp.headers['X-Content-Type-Options']='nosniff'
     resp.headers['X-Frame-Options']='DENY'
+    resp.headers['Content-Security-Policy']="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; object-src 'none'"
     resp.headers['Referrer-Policy']='no-referrer'
     resp.headers['Cache-Control']='no-store' if request.url.path.startswith('/api') else 'private, max-age=60'
     return resp
@@ -87,8 +96,8 @@ def get_status():
        'promo_per_channel':float(cfg['promo_per_channel']),
        'social_connections':0,'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
-       'local_storyboard_preview_enabled':True,
-       'notice':'v0.2: pachete storyboard și preview static local (cu FFmpeg). Nu este generare video AI finală, fără publicare sau costuri.'}
+       'local_storyboard_preview_enabled':True,'local_motion_graphics_enabled':True,'local_calendar_enabled':True,'local_export_enabled':True,
+       'notice':'v1.0 RC: studio motion graphics local, QA, calendar și export manual. Nu este generare AI 3D, fără publicare online sau costuri.'}
 
 @app.get('/api/channels',dependencies=[Depends(guarded)])
 def channels(): return db.all_rows('SELECT * FROM channels')
@@ -271,8 +280,8 @@ class RenderInput(BaseModel):
 
 @app.get('/api/studio/capabilities', dependencies=[Depends(guarded)])
 def studio_capabilities():
-    return {'version':'0.2.0','local_only':True,'components':studio.capabilities(),
-            'render_kind':'STATIC_CONCEPT_STORYBOARD','ai_video_generated':False,
+    return {'version':'1.0.0-rc1','local_only':True,'components':studio.capabilities(),
+            'render_kind':'STATIC_PREVIEW_OR_FULL_MOTION_GRAPHICS','ai_video_generated':False,
             'external_downloads':False,'social_posting':False,'cloud_gpu':False}
 
 @app.get('/api/studio/jobs', dependencies=[Depends(guarded)])
@@ -297,10 +306,185 @@ def studio_job(job_id:int):
     return job
 
 @app.get('/api/studio/jobs/{job_id}/file/{kind}', dependencies=[Depends(guarded)])
-def studio_download(job_id:int, kind:Literal['video','script','subtitles','manifest','image','voice']):
+def studio_download(job_id:int, kind:Literal['video','script','subtitles','manifest','image','voice','soundtrack']):
     path=studio.output_file(job_id,kind)
     if path is None:raise HTTPException(404,'Fișierul nu este disponibil')
     return FileResponse(path, filename=path.name)
+
+
+
+class ScriptEdit(BaseModel):
+    text: str = Field(min_length=20, max_length=20000)
+
+@app.get('/api/items/{item_id}/script', dependencies=[Depends(guarded)])
+def get_script(item_id: int):
+    item = record('SELECT * FROM items WHERE id=?',(item_id,))
+    script_root = Path(os.getenv('BERRY_SCRIPT_DIR', str(ROOT / 'data' / 'scripts')))
+    custom = script_root / f'item_{item_id}.txt'
+    text = custom.read_text(encoding='utf-8') if custom.is_file() else '\n'.join(studio._script_lines(item))
+    return {'item_id':item_id,'text':text,'custom':custom.is_file(),'editable':item['status']=='DRAFT'}
+
+@app.post('/api/items/{item_id}/script', dependencies=[Depends(guarded)])
+def save_script(item_id: int, data: ScriptEdit):
+    item = record('SELECT * FROM items WHERE id=?',(item_id,))
+    if item['status'] != 'DRAFT':
+        raise HTTPException(409,'Scriptul poate fi modificat doar în DRAFT')
+    script_root = Path(os.getenv('BERRY_SCRIPT_DIR', str(ROOT / 'data' / 'scripts')))
+    script_root.mkdir(parents=True,exist_ok=True)
+    text='\n'.join(x.strip() for x in data.text.splitlines() if x.strip())+'\n'
+    (script_root / f'item_{item_id}.txt').write_text(text,encoding='utf-8')
+    with db.connection() as con:
+        con.execute("UPDATE render_jobs SET status='STALE',updated_at=? WHERE item_id=? AND status IN ('DONE','PACKAGE_ONLY')",(db.utcnow(),item_id))
+        db.audit(con,'script_changed',{'item_id':item_id,'length':len(text)})
+    return {'saved':True,'item_id':item_id,'characters':len(text),'rerender_required':True}
+
+class ReviewChecks(BaseModel):
+    facts_checked: bool = False
+    visual_rights: bool = False
+    voice_rights: bool = False
+    music_rights: bool = False
+    disclosure_checked: bool = False
+    notes: str = Field(default='', max_length=1000)
+
+class ScheduleInput(BaseModel):
+    item_id: int = Field(gt=0)
+    platform: Literal['youtube','tiktok','instagram']
+    scheduled_at: str = Field(min_length=20, max_length=40)
+
+@app.get('/api/qa/{item_id}', dependencies=[Depends(guarded)])
+def qa_status(item_id: int):
+    try:
+        return {'review': workflow.meta(item_id), 'report': workflow.quality(item_id)}
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+@app.post('/api/qa/{item_id}/checks', dependencies=[Depends(guarded)])
+def qa_checks(item_id: int, checks: ReviewChecks):
+    try:
+        return workflow.save_meta(item_id, checks.model_dump(), checks.notes)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+@app.post('/api/qa/{item_id}/run', dependencies=[Depends(guarded)])
+def qa_run(item_id: int):
+    try:
+        return workflow.quality(item_id, save=True)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+@app.get('/api/calendar', dependencies=[Depends(guarded)])
+def calendar_list():
+    return workflow.calendar()
+
+@app.post('/api/calendar', status_code=201, dependencies=[Depends(guarded)])
+def calendar_add(data: ScheduleInput):
+    try:
+        return workflow.schedule(data.item_id, data.platform, data.scheduled_at)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+@app.post('/api/calendar/{schedule_id}/cancel', dependencies=[Depends(guarded)])
+def calendar_cancel(schedule_id: int):
+    try:
+        return workflow.cancel_schedule(schedule_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+@app.get('/api/calendar/{schedule_id}/package', dependencies=[Depends(guarded)])
+def calendar_package(schedule_id: int):
+    try:
+        content, filename = workflow.package(schedule_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return Response(content, media_type='application/zip', headers={'Content-Disposition':f'attachment; filename="{filename}"'})
+
+@app.get('/api/backup', dependencies=[Depends(guarded)])
+def backup_download():
+    content, filename = workflow.backup()
+    return Response(content, media_type='application/zip', headers={'Content-Disposition':f'attachment; filename="{filename}"'})
+
+@app.get('/api/production/summary', dependencies=[Depends(guarded)])
+def production_summary():
+    counts = {r['status']:r['n'] for r in db.all_rows('SELECT status,COUNT(*) n FROM items GROUP BY status')}
+    jobs = {r['status']:r['n'] for r in db.all_rows('SELECT status,COUNT(*) n FROM render_jobs GROUP BY status')}
+    return {'items':counts, 'renders':jobs, 'calendar':len(workflow.calendar()),
+            'local_only':True, 'automatic_publishing':False, 'real_spend':False,
+            'engine_requirements': 'Modele AI, Blender/ComfyUI și voci sunt opționale și nu sunt incluse'}
+
+@app.post('/api/studio/render-next', status_code=202, dependencies=[Depends(guarded)])
+def render_next():
+    rows = db.all_rows("""SELECT i.id FROM items i WHERE i.status='DRAFT'
+      AND NOT EXISTS(SELECT 1 FROM render_jobs j WHERE j.item_id=i.id AND j.mode='full' AND j.status='DONE')
+      ORDER BY i.id LIMIT 1""")
+    if not rows:
+        return {'job_id':None,'message':'Toate schițele au randare completă sau nu există schițe'}
+    try:
+        job_id = studio.submit(rows[0]['id'], 'full')
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {'job_id':job_id,'item_id':rows[0]['id'],'status':'QUEUED'}
+
+@app.post('/api/items/{item_id}/art', dependencies=[Depends(guarded)])
+async def upload_art(item_id: int, file: UploadFile = File(...)):
+    from PIL import Image, ImageOps, UnidentifiedImageError
+    item = record('SELECT * FROM items WHERE id=?', (item_id,))
+    if item['status'] != 'DRAFT':
+        raise HTTPException(409,'Importul este permis doar pentru DRAFT')
+    raw = await file.read(8_000_001)
+    if len(raw) > 8_000_000:
+        raise HTTPException(413, 'Imagine prea mare (max. 8 MB)')
+    try:
+        with Image.open(io.BytesIO(raw)) as source:
+            if source.format not in ('JPEG','PNG','WEBP'):
+                raise ValueError('Formatul trebuie să fie JPEG, PNG sau WEBP')
+            if source.width * source.height > 25_000_000:
+                raise ValueError('Imagine prea mare în pixeli')
+            picture = ImageOps.exif_transpose(source).convert('RGB')
+            picture.thumbnail((2048,2048))
+    except (UnidentifiedImageError, ValueError, OSError) as exc:
+        raise HTTPException(422, 'Fișier imagine invalid') from exc
+    assets = Path(os.getenv('BERRY_ASSET_DIR', str(ROOT / 'data' / 'assets')))
+    assets.mkdir(parents=True,exist_ok=True)
+    target = assets / f'item_{item_id}.webp'
+    picture.save(target,format='WEBP',quality=90)
+    with db.connection() as con:
+        con.execute("UPDATE render_jobs SET status='STALE',updated_at=? WHERE item_id=? AND status IN ('DONE','PACKAGE_ONLY')",(db.utcnow(),item_id))
+        db.audit(con,'user_art_uploaded',{'item_id':item_id,'bytes':len(raw)})
+    return {'stored':True,'item_id':item_id,'filename':target.name,'source':'USER_SUPPLIED'}
+
+@app.post('/api/items/{item_id}/soundtrack', dependencies=[Depends(guarded)])
+async def upload_soundtrack(item_id: int, file: UploadFile = File(...)):
+    item = record('SELECT * FROM items WHERE id=?',(item_id,))
+    if item['status'] != 'DRAFT':
+        raise HTTPException(409,'Importul este permis doar pentru DRAFT')
+    raw = await file.read(25_000_001)
+    if len(raw) > 25_000_000:
+        raise HTTPException(413,'Audio prea mare (max. 25 MB)')
+    # Validate container signatures; FFmpeg validates actual decodability during render.
+    if raw.startswith(b'RIFF') and raw[8:12] == b'WAVE':
+        ext='wav'
+    elif raw.startswith(b'ID3') or (len(raw)>2 and raw[0]==0xff and (raw[1]&0xe0)==0xe0):
+        ext='mp3'
+    else:
+        raise HTTPException(422,'Acceptăm doar WAV și MP3 valide')
+    assets = Path(os.getenv('BERRY_ASSET_DIR', str(ROOT / 'data' / 'assets')))
+    assets.mkdir(parents=True,exist_ok=True)
+    for old in assets.glob(f'item_{item_id}_soundtrack.*'):
+        old.unlink(missing_ok=True)
+    target=assets/f'item_{item_id}_soundtrack.{ext}'
+    target.write_bytes(raw)
+    with db.connection() as con:
+        con.execute("UPDATE render_jobs SET status='STALE',updated_at=? WHERE item_id=? AND status IN ('DONE','PACKAGE_ONLY')",(db.utcnow(),item_id))
+        db.audit(con,'user_soundtrack_uploaded',{'item_id':item_id,'bytes':len(raw),'format':ext})
+    return {'stored':True,'item_id':item_id,'filename':target.name,'source':'USER_SUPPLIED'}
 
 @app.get('/api/integrations',dependencies=[Depends(guarded)])
 def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'NOT_CONNECTED','status':'FINAL_PHASE_ONLY'}
