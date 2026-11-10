@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
+from . import studio
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -26,9 +27,10 @@ KEY = os.environ.get('BERRY_ACCESS_KEY','')
 @asynccontextmanager
 async def lifespan(app:FastAPI):
     db.init_db()
+    studio.init_jobs()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='0.1.0',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='0.2.0',lifespan=lifespan)
 
 @app.middleware('http')
 async def security_headers(request:Request,call_next):
@@ -85,7 +87,8 @@ def get_status():
        'promo_per_channel':float(cfg['promo_per_channel']),
        'social_connections':0,'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
-       'notice':'Versiune locală: doar planificare, SEO-model, aprobări. Fără conectare la conturi, GPU sau publicare.'}
+       'local_storyboard_preview_enabled':True,
+       'notice':'v0.2: pachete storyboard și preview static local (cu FFmpeg). Nu este generare video AI finală, fără publicare sau costuri.'}
 
 @app.get('/api/channels',dependencies=[Depends(guarded)])
 def channels(): return db.all_rows('SELECT * FROM channels')
@@ -260,6 +263,44 @@ def export_csv():
     w=csv.DictWriter(out,fieldnames=cols);w.writeheader()
     for r in db.all_rows('SELECT '+','.join(cols)+' FROM items ORDER BY id'):w.writerow(r)
     return Response('\ufeff'+out.getvalue(),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':'attachment; filename="berry_content.csv"'})
+
+
+class RenderInput(BaseModel):
+    item_id: int = Field(gt=0)
+    mode: Literal['preview','full'] = 'preview'
+
+@app.get('/api/studio/capabilities', dependencies=[Depends(guarded)])
+def studio_capabilities():
+    return {'version':'0.2.0','local_only':True,'components':studio.capabilities(),
+            'render_kind':'STATIC_CONCEPT_STORYBOARD','ai_video_generated':False,
+            'external_downloads':False,'social_posting':False,'cloud_gpu':False}
+
+@app.get('/api/studio/jobs', dependencies=[Depends(guarded)])
+def studio_jobs():
+    return studio.get_jobs()
+
+@app.post('/api/studio/render', status_code=202, dependencies=[Depends(guarded)])
+def studio_render(data: RenderInput):
+    try:
+        job_id = studio.submit(data.item_id, data.mode)
+    except LookupError as exc:
+        raise HTTPException(404,str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409,str(exc)) from exc
+    return {'job_id':job_id,'status':'QUEUED','mode':data.mode,
+            'note':'Randare concept local; NU este video AI final și nu se publică.'}
+
+@app.get('/api/studio/jobs/{job_id}', dependencies=[Depends(guarded)])
+def studio_job(job_id:int):
+    job=studio.get_job(job_id)
+    if not job:raise HTTPException(404,'Randarea nu există')
+    return job
+
+@app.get('/api/studio/jobs/{job_id}/file/{kind}', dependencies=[Depends(guarded)])
+def studio_download(job_id:int, kind:Literal['video','script','subtitles','manifest','image','voice']):
+    path=studio.output_file(job_id,kind)
+    if path is None:raise HTTPException(404,'Fișierul nu este disponibil')
+    return FileResponse(path, filename=path.name)
 
 @app.get('/api/integrations',dependencies=[Depends(guarded)])
 def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'NOT_CONNECTED','status':'FINAL_PHASE_ONLY'}

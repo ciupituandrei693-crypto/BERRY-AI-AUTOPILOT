@@ -1,4 +1,4 @@
-# 🍓 BERRY AI AUTOPILOT — LOCAL V0.1
+# 🍓 BERRY AI AUTOPILOT — LOCAL V0.2
 
 **Aplicație reală de planificare, SEO și aprobare locală**, cu backend FastAPI, interfață web responsive/PWA și bază SQLite. Rulează pe Windows fără server extern, fără GPU cloud și fără abonament. Proiectul este un **nucleu funcțional**, NU încă motor complet de producție AI video sau programator de postări.
 
@@ -6,8 +6,8 @@
 
 1. Instalează **Python 3.11/3.12** dacă nu există, bifând `Add Python to PATH`.
 2. Dezarhivează fișierul ZIP într-un folder simplu, ex. `C:\BERRY_AI`.
-3. Dublu-click pe **`start_berry.bat`**. La prima pornire descarcă pachetele Python gratuite (`fastapi`, `uvicorn`, `pydantic`) folosind internetul. Ulterior rulează local.
-4. Browserul se deschide la **http://127.0.0.1:8765**.
+3. Dublu-click pe **`LAUNCH_BERRY.cmd`** (un singur lansator; `start_berry.bat` rămâne alias compatibil). La prima pornire descarcă pachetele Python gratuite (`fastapi`, `uvicorn`, `pydantic`) folosind internetul. Ulterior rulează local.
+4. Browserul se deschide automat după ce serverul răspunde la **http://127.0.0.1:8765**.
 5. Lasă fereastra neagră deschisă cât timp folosești aplicația. Închizi cu `Ctrl+C`.
 
 Alternativ: `python -m pip install -r requirements.txt` și `python -m uvicorn berry.app:app --host 127.0.0.1 --port 8765`.
@@ -31,11 +31,13 @@ Alternativ: `python -m pip install -r requirements.txt` și `python -m uvicorn b
 - grupare în loturi, aprobare/respingere, audit;
 - registru de propuneri de cost, control Kill Switch;
 - interfață responsive/PWA și export CSV;
-- două utilitare opționale locale pentru creare Short 15s și extragere 3 imagini dintr-un videoclip existent (necesită FFmpeg instalat separat).
+- două utilitare opționale locale pentru creare Short 15s și extragere 3 imagini dintr-un videoclip existent (necesită FFmpeg instalat separat);
+- **Media Studio v0.2**: pachete de storyboard (scenariu, subtitrări SRT, imagine concept, manifest) și **previzualizare MP4 statică** dacă FFmpeg este instalat;
+- **coadă de randare locală**, jurnal de rezultate, descărcarea fișierelor și verificarea componentelor opționale.
 
 ### Ce NU funcționează încă
 
-- Nu există generare imagine/video 3D sau melodii AI; grafica inclusă este doar concept de personaj.
+- Nu există generare AI de imagine/video 3D sau melodii AI; grafica inclusă este doar concept de personaj. **MP4-ul v0.2 este o previzualizare statică, nu animație AI.**
 - Nu există conectare de conturi Google/Meta/TikTok, nicio publicare API și niciun marketing plătit.
 - Nu există model local GGUF instalat în aplicație. Dacă ai deja KoboldCpp pornit pe `http://127.0.0.1:5001`, butonul „Încearcă AI local” din SEO Studio poate genera text cu modelul tău (modelele și prompturile trebuie testate).
 - Nu există actualizare automată a trendurilor și nici SEO bazat pe metrici reale.
@@ -63,7 +65,7 @@ Frontendul este **responsive și are manifest PWA**, dar acum serverul ascultă 
 
 **Faza 1 – inclusă în arhivă:** structură backend, bază de date, design responsive/PWA, character bible, planner, SEO template, aprobări, Kill Switch.
 
-**Faza 2 – local:** generator efectiv de scenarii cu KoboldCpp/Qwen3; motor media FFmpeg/VoiceStudio; salvat fișiere în bibliotecă, test pe 5 episoade. Nu porni niciun serviciu cloud.
+**Faza 2 – local, începută în v0.2:** FFmpeg pentru previzualizări statice, fișiere storyboard, coadă de randare, integrare opțională Piper TTS dacă există executabilul și modelul de voce; KoboldCpp rămâne un conector opțional, fără model inclus. VoiceStudio/Blender/ComfyUI și celelalte motoare AI necesită integrare și teste ulterioare. Nu porni niciun serviciu cloud.
 
 **Faza 3 – local:** integrare grafică Blender, șabloane video HyperFrames, versiune de producție cu jurnalizare, QA automat și testare licențe.
 
@@ -84,6 +86,21 @@ Frontendul este **responsive și are manifest PWA**, dar acum serverul ascultă 
 - `data/` — baza locală (creată la prima pornire)
 - `tools/` — FFmpeg local
 - `tests/` — teste automate
-- `start_berry.bat` — lansator Windows
+- `LAUNCH_BERRY.cmd` — **un singur lansator Windows**; `start_berry.bat` — alias de compatibilitate
+- `berry/studio.py` — coadă de randare, fișiere storyboard, FFmpeg, adaptor opțional Piper
+- `tools/open_when_ready.ps1` — deschide browserul după pornirea serverului
+- `docs/ASSEMBLY_V02.md` — stare verificată, limite și pași următori
 
 **Licență:** codul nou din această arhivă este oferit pentru utilizarea ta în proiectul BERRY; nu include cod copiat din proiectele externe enumerate. Licențele proiectelor externe trebuie verificate separat înaintea integrării.
+
+## Media Studio v0.2 — test rapid
+
+1. Deschide **Content Planner** și creează un material DRAFT (de exemplu FRUIT LAB — AFINA).
+2. Deschide **Media Studio**, alege materialul și apasă **Generează local**.
+3. La **Randări și fișiere**, descarcă scenariul `.txt`, subtitrările `.srt`, imaginea concept și manifestul `.json`.
+4. Dacă `ffmpeg.exe` este în PATH sau `BERRY_FFMPEG_PATH` este configurată, primești și un **MP4 concept static**. Dacă nu, primești doar pachetul de producție, fără video.
+5. Pentru TTS opțional: setează `BERRY_PIPER_PATH` și `BERRY_PIPER_MODEL` către fișiere locale valide; aplicația nu descarcă modele.
+
+**Un singur click ≠ fără prerechizite:** în această etapă este necesar Python 3.11+ pe Windows. Prima pornire instalează gratuit pachetele din `requirements.txt` într-un mediu local `.venv` (necesită Internet pentru pip). Un `.exe` Windows complet autonom nu poate fi compilat și verificat din mediul Linux folosit pentru asamblare; se va construi/testa pe Windows în etapa de împachetare.
+
+**Nicio componentă din ZIP-urile externe nu este copiată automat în acest repository public.** Integrarea lor va necesita audit de licențe, compatibilitate și modele. Vezi `docs/ASSEMBLY_V02.md`.

@@ -47,3 +47,6 @@ py -3.12 -m venv .venv
 ## Notă privind licența
 
 Codul BERRY și documentația sunt separate de repository-urile externe, care **nu sunt incluse** aici. Nu este acordată implicit o licență open-source pentru codul BERRY; alege licența înainte de a face repository-ul public. Verifică separat drepturile pentru imagini, personaje și orice componente integrate ulterior.
+
+
+**One-click Windows launch:** double-click `LAUNCH_BERRY.cmd` (Python 3.11+ prerequisite). Local Media Studio creates storyboard assets and optional static FFmpeg previews, not final AI videos. See [README_RO.md](README_RO.md).
