@@ -62,6 +62,8 @@ def _validate(name: str) -> dict:
     root_raw, python_raw = spec.get("root"), spec.get("python")
     if not isinstance(root_raw, str) or not isinstance(python_raw, str):
         raise BridgeError("Sunt necesare root și python")
+    if any(v.startswith(("\\\\", "//")) or "://" in v for v in (root_raw, python_raw)):
+        raise BridgeError("Căile de rețea sau URL sunt interzise")
     root, python = Path(root_raw).expanduser().resolve(), Path(python_raw).expanduser().resolve()
     if not root.is_dir() or not python.is_file() or python.suffix.lower() not in (".exe", ""):
         raise BridgeError("Folderul motorului sau interpretorul Python nu există")
@@ -82,8 +84,8 @@ def _validate(name: str) -> dict:
     if not any("{output}" in x or "{outdir}" in x for x in argv):
         raise BridgeError("argv trebuie să conțină {output} sau {outdir}")
     weights = spec.get("weights", [])
-    if not isinstance(weights, list) or len(weights) > 30:
-        raise BridgeError("weights trebuie să fie o listă")
+    if not isinstance(weights, list) or not 1 <= len(weights) <= 30:
+        raise BridgeError("Declară cel puțin un checkpoint local în weights")
     for rel in weights:
         if not isinstance(rel, str) or not rel or len(rel) > 300:
             raise BridgeError("Cale weights invalidă")
@@ -179,6 +181,12 @@ def run(name: str, item: dict, job_id: int) -> dict:
     if not candidates:
         raise BridgeError("Motorul nu a creat un fișier de ieșire valid în folderul local")
     source = max(candidates, key=lambda p: p.stat().st_size)
+    with source.open("rb") as handle:
+        header = handle.read(32)
+    if kind == "video" and b"ftyp" not in header[:20]:
+        raise BridgeError("Ieșirea nu are antet MP4 valid")
+    if kind == "mesh" and not header.startswith(b"glTF"):
+        raise BridgeError("Ieșirea nu are antet GLB valid")
     dest = assets / ("item_%s_%s.%s" % (item["id"], "video" if kind == "video" else "mesh",
                                        "mp4" if kind == "video" else "glb"))
     temp = assets / (dest.name + ".partial")
