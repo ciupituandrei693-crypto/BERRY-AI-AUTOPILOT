@@ -1,4 +1,4 @@
-# 🍓 BERRY AI AUTOPILOT v1.1 RC — studio local Windows
+# 🍓 BERRY AI AUTOPILOT v1.3 RC — studio local Windows
 
 **BERRY funcționează local** pentru cinci canale de personaje-fructe. Această versiune adaugă adaptoare reale pentru motoare AI locale, dar **nu conține weights, nu garantează randare AI 3D/video și nu publică online**. Conectarea la server extern și GPU cloud rămâne ultima etapă, numai cu aprobare.
 
