@@ -22,7 +22,7 @@ from . import db, engines, studio
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = threading.Lock()
-ENGINES = ("comfyui", "ace_step", "wangp", "faster_whisper", "voice_studio", "blender_3d")
+ENGINES = ("comfyui", "ace_step", "wangp", "faster_whisper", "voice_studio", "blender_3d", "liveportrait", "musetalk", "latentsync", "hunyuan3d")
 
 
 def assets_dir() -> Path:
@@ -108,6 +108,9 @@ def _worker(job_id: int, item: dict) -> None:
             elif engine == "blender_3d":
                 from . import three_d
                 result = three_d.render_item(item, job_id)
+            elif engine in ("liveportrait", "musetalk", "latentsync", "hunyuan3d"):
+                from . import model_bridge
+                result = model_bridge.run(engine, item, job_id)
             else:
                 result = whisper_subtitles(item, job_id)
             result["elapsed_seconds"] = round(time.monotonic() - started, 2)
