@@ -40,6 +40,10 @@ def download_model(name: str, destination: Path) -> dict:
     )
     files = [p for p in Path(path).rglob("*")
              if p.is_file() and ".cache" not in p.parts]
+    if not files:
+        raise RuntimeError("Nu au fost gasite fisiere compatibile cu filtrul modelului")
+    if name == "piper_ro" and not any(p.suffix == ".onnx" for p in files):
+        raise RuntimeError("Nu a fost gasita nicio voce Piper .onnx")
     return {"engine": name, "repository": repo, "destination": str(destination),
             "files": len(files), "bytes": sum(p.stat().st_size for p in files),
             "downloaded_only": True, "inference_tested": False,
