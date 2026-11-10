@@ -53,3 +53,7 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 - Arhivele încărcate în conversație nu au putut fi inspectate integral în mediul actual. CLI-urile trebuie verificate cu versiunile ZIP.
 - **Windows EXE, randarea reală și performanța GPU nu sunt încă validate pe PC-ul tău.** Instrucțiuni: `docs/LOCAL_FINAL_STAGES_1_TO_11.md`.
 - **Etapa 12 (server, GPU cloud, conturi sociale, publicare și plăți) rămâne dezactivată.**
+
+## Instalarea asistată a componentelor gratuite
+
+Pe Windows rulează `INSTALARE_COMPONENTE_LOCALE.cmd` (dublu click). Scriptul PowerShell cere confirmare pentru Python, Git, FFmpeg, Blender, dependențele Python și clonarea surselor LivePortrait/MuseTalk/LatentSync/Hunyuan3D/Rhubarb. Necesită internet la instalare; nu activează cloud sau servicii plătite. **Nu instalează weights/checkpoints, drivere GPU, executabilul Rhubarb sau mediile Python ale modelelor AI**. Acestea se configurează separat după verificarea licenței și compatibilității hardware. Instalarea nu a fost executată pe PC-ul utilizatorului.
