@@ -108,7 +108,7 @@ function Find-Python {
   if (Test-Path $exe) { return $exe }
   return $null
 }
-function Install-Pip([string]$Python, [string]$Name, [string[]]$Args) {
+function Install-Pip([string]$Python, [string]$Name, [string[]]$PipArgs) {
   if (-not $Python -or -not (Test-Path $Python)) {
     Record $Name 'MANUAL' 'Mediul Python nu este disponibil.'
     return $false
@@ -117,7 +117,7 @@ function Install-Pip([string]$Python, [string]$Name, [string[]]$Args) {
     Record $Name 'SKIP' 'Instalare amanata.'
     return $false
   }
-  & $Python -m pip install @Args
+  & $Python -m pip install @PipArgs
   if ($LASTEXITCODE -eq 0) {
     Record $Name 'INSTALLED' 'Pachete instalate; testul functional urmeaza.'
     return $true
