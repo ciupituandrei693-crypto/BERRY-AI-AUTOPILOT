@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -243,6 +244,44 @@ def _ffmpeg_render(outdir: Path, art: Path, duration: int, voice: Path | None) -
     return output
 
 
+def _video_seconds(video: Path) -> float | None:
+    ffmpeg = binary_path("ffmpeg", "BERRY_FFMPEG_PATH")
+    if not ffmpeg:
+        return None
+    try:
+        result = subprocess.run([ffmpeg, "-hide_banner", "-i", str(video)],
+                                capture_output=True, text=True, timeout=15, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr)
+    if not match:
+        return None
+    h, m, sec = match.groups()
+    return round(int(h) * 3600 + int(m) * 60 + float(sec), 2)
+
+
+def _mux_imported_video(source: Path, outdir: Path, voice: Path | None, soundtrack: Path | None) -> Path:
+    dest = outdir / "final-video.mp4"
+    if not (voice or soundtrack):
+        shutil.copyfile(source, dest)
+        return dest
+    ffmpeg = binary_path("ffmpeg", "BERRY_FFMPEG_PATH")
+    if not ffmpeg:
+        raise RuntimeError("FFmpeg este necesar pentru combinarea video + audio")
+    cmd = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(source)]
+    if voice and soundtrack:
+        cmd += ["-i", str(voice), "-stream_loop", "-1", "-i", str(soundtrack),
+                "-filter_complex", "[1:a]apad[v];[2:a]volume=0.18[m];[v][m]amix=inputs=2:duration=longest[a]",
+                "-map", "0:v:0", "-map", "[a]"]
+    else:
+        cmd += ["-stream_loop", "-1", "-i", str(voice or soundtrack), "-map", "0:v:0", "-map", "1:a:0"]
+    cmd += ["-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", str(dest)]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180, check=False)
+    if result.returncode or not dest.is_file():
+        raise RuntimeError("FFmpeg nu a putut combina video cu audio")
+    return dest
+
+
 def _worker(job_id: int) -> None:
     with ENGINE_LOCK:
         try:
@@ -267,13 +306,24 @@ def _worker(job_id: int) -> None:
             (outdir / "script.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
             shutil.copyfile(art, outdir / "character-concept.webp")
             if duration:
-                (outdir / "captions.srt").write_text(_srt(lines, duration), encoding="utf-8")
-            supplied = list(asset_root.glob(f"item_{item['id']}_soundtrack.*")) if asset_root.exists() else []
-            voice = None
+                transcript = asset_root / f"item_{item['id']}_captions.srt"
+                if transcript.is_file():
+                    shutil.copyfile(transcript, outdir / "captions.srt")
+                else:
+                    (outdir / "captions.srt").write_text(_srt(lines, duration), encoding="utf-8")
+            supplied = [p for p in asset_root.glob(f"item_{item['id']}_soundtrack.*") if p.suffix.lower() in ('.wav', '.mp3')]
+            supplied.sort()
+            soundtrack = None
             music_supplied = bool(supplied)
             if supplied:
-                voice = outdir / supplied[0].name
-                shutil.copyfile(supplied[0], voice)
+                soundtrack = outdir / supplied[0].name
+                shutil.copyfile(supplied[0], soundtrack)
+            voice_source = next((p for ext in ('wav', 'mp3') if
+                                 (p := asset_root / f"item_{item['id']}_voice.{ext}").is_file()), None)
+            voice = None
+            if voice_source:
+                voice = outdir / f"voice{voice_source.suffix}"
+                shutil.copyfile(voice_source, voice)
             elif duration and capabilities()["piper"]["ready"]:
                 voice = _piper_audio(outdir, " ".join(lines))
             elif duration:
@@ -281,12 +331,18 @@ def _worker(job_id: int) -> None:
             preview = None
             image_path = outdir / "final-image.png"
             render_kind = "STATIC_CONCEPT_STORYBOARD"
+            generated_video = asset_root / f"item_{item['id']}_video.mp4"
             if job["mode"] == "full":
                 from . import motion
                 motion._scene(art, item["channel_id"], item["topic"], lines[0], 0, image_path)
-                if duration and capabilities()["ffmpeg"]["ready"]:
-                    preview, _ = motion.render(outdir, art, item["channel_id"], item["topic"], lines, duration, voice)
+                if duration and generated_video.is_file():
+                    preview = _mux_imported_video(generated_video, outdir, voice, soundtrack)
+                    render_kind = "IMPORTED_OR_GENERATED_LOCAL_VIDEO"
+                elif duration and capabilities()["ffmpeg"]["ready"]:
+                    preview, _ = motion.render(outdir, art, item["channel_id"], item["topic"], lines, duration, voice, soundtrack)
                     render_kind = "MOTION_GRAPHICS_LOCAL"
+                elif item["content_type"] == "image" and user_art.is_file():
+                    render_kind = "IMAGE_LOCAL_IMPORTED_OR_GENERATED"
             else:
                 if duration and capabilities()["ffmpeg"]["ready"]:
                     preview = _ffmpeg_render(outdir, art, duration, voice)
@@ -294,14 +350,18 @@ def _worker(job_id: int) -> None:
                 "item_id": item["id"], "job_id": job_id, "channel": item["channel_id"],
                 "character": LEADS[item["channel_id"]], "topic": item["topic"],
                 "content_type": item["content_type"], "target_duration_seconds": target,
-                "rendered_duration_seconds": duration if preview else 0,
+                "rendered_duration_seconds": (_video_seconds(preview) if render_kind == "IMPORTED_OR_GENERATED_LOCAL_VIDEO" else duration) if preview else 0,
                 "render_mode": job["mode"], "render_kind": render_kind,
                 "video_created": bool(preview), "image_created": image_path.is_file() or art.is_file(),
-                "voice_created": bool(voice) and not music_supplied, "music_supplied": music_supplied,
-                "art_source": "USER_SUPPLIED" if user_art.is_file() else "BUNDLED_CONCEPT",
-                "ai_animated": False, "music_generated": False,
+                "voice_created": bool(voice), "music_supplied": music_supplied,
+                "art_source": ("COMFYUI_LOCAL" if (asset_root / f"item_{item['id']}_art_source.json").is_file() else "USER_SUPPLIED") if user_art.is_file() else "BUNDLED_CONCEPT",
+                "audio_source": "VOICE_AND_MUSIC" if voice and soundtrack else "VOICE" if voice else "MUSIC" if soundtrack else "SILENCE",
+                "ai_animated": bool((asset_root / f"item_{item['id']}_video_source.json").is_file() and generated_video.is_file()),
+                "music_generated": bool((asset_root / f"item_{item['id']}_music_source.json").is_file() and music_supplied),
                 "published": False, "qa_approved": False,
-                "status_note": "Video motion graphics local, NU animație 3D AI și NU publicat" if render_kind == "MOTION_GRAPHICS_LOCAL" else "Concept static, nu video AI final și nu publicare",
+                "status_note": ("Video MP4 local importat/generat; verifică proveniența și drepturile, NEPUBLICAT" if render_kind == "IMPORTED_OR_GENERATED_LOCAL_VIDEO"
+                                else "Video motion graphics local, NU animație 3D AI și NU publicat" if render_kind == "MOTION_GRAPHICS_LOCAL"
+                                else "Concept/imagine locală, fără publicare"),
                 "files": [p.name for p in outdir.iterdir() if p.is_file()] + ["manifest.json"],
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
@@ -327,8 +387,12 @@ def output_file(job_id: int, kind: Literal["video", "script", "subtitles", "mani
     if kind == "soundtrack":
         found = list(outdir.glob(f"item_{job['item_id']}_soundtrack.*"))
         return found[0] if found else None
+    if kind == "video" and (outdir / "final-video.mp4").is_file():
+        return outdir / "final-video.mp4"
     if kind == "video" and (outdir / "motion-video.mp4").is_file():
         return outdir / "motion-video.mp4"
+    if kind == "voice" and (outdir / "voice.mp3").is_file():
+        return outdir / "voice.mp3"
     if kind == "image" and (outdir / "final-image.png").is_file():
         return outdir / "final-image.png"
     path = outdir / names[kind]

@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title BERRY AI AUTOPILOT - Local Studio v1.0 RC
+title BERRY AI AUTOPILOT - Local Studio v1.1 RC
 if exist "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe" (
   "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe"
   exit /b %errorlevel%
@@ -28,17 +28,16 @@ if not exist ".venv\Scripts\python.exe" (
   %BERRY_PYTHON% -m venv .venv
   if errorlevel 1 goto fail
 )
-if not exist ".venv\berry-ready-v10.flag" (
+if not exist ".venv\berry-ready-v11.flag" (
   echo [BERRY] Instalez dependentele gratuite - necesita internet doar prima data...
   ".venv\Scripts\python.exe" -m pip install -r requirements.txt
   if errorlevel 1 goto fail
-  echo ready>".venv\berry-ready-v10.flag"
+  echo ready>".venv\berry-ready-v11.flag"
 )
 echo.
 echo [BERRY] Pornesc aplicatia local la http://127.0.0.1:8765
 echo [BERRY] Inchide aceasta fereastra pentru a opri aplicatia.
-start "" /min powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\open_when_ready.ps1"
-".venv\Scripts\python.exe" -m uvicorn berry.app:app --host 127.0.0.1 --port 8765
+".venv\Scripts\python.exe" berry_launcher.py
 if errorlevel 1 goto fail
 exit /b 0
 :fail

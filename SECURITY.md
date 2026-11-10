@@ -1,12 +1,11 @@
-# BERRY — Local Security Boundary
+# Security — BERRY v1.1 RC
 
-- Runs on `127.0.0.1:8765` only. Do not bind to `0.0.0.0` or forward the port.
-- `TrustedHostMiddleware` restricts Host; unsafe API methods reject foreign Origin.
-- Set a strong `BERRY_ACCESS_KEY` if untrusted local users/processes may access the browser.
-- This is **not** production-grade remote authentication. Before phone/network access, implement session auth, TLS, CSRF tokens, rate limits, role permissions and secrets management.
-- No real social API, OAuth, remote server, paid promotion or cloud GPU code is active.
-- User-uploaded art/audio and custom scripts stay in `data/`, ignored by Git; limits and format checks apply, but imported content must be reviewed for rights and safety.
-- The repository is public; do not commit database files, generated outputs, API keys, personal content, ZIPs or model weights.
-- Bundled artwork is conceptual; distribution rights must be confirmed before commercial/public redistribution.
-- GitHub ZIP source dependencies are **not** auto-executed; inspect licenses, hashes, dependency trees and models before installing.
-- The local ZIP export is for **manual** posting and cannot bypass human QA + approval.
+BERRY is a **local-only** studio. Its default launcher binds `127.0.0.1:8765`. It has no social publishing, cloud GPU, server provisioning, payment execution, or OAuth integration. The kill switch is active by default. Do not expose port 8765 to LAN/Internet; the optional `BERRY_ACCESS_KEY` is only an additional local protection, not a replacement for TLS/network access control.
+
+Engine URLs are restricted to HTTP loopback with an explicit port. Redirects are refused and downloads have byte limits. Local AI engines run only after explicit user actions and require separate model/runtime setup. No model downloads or auto-installations are triggered by BERRY AI job submission.
+
+Imported media is size-limited; images are decoded and converted with Pillow; MP4 is signature-checked and first-frame validated by FFmpeg. Do not assume content is licensed: QA requires manual rights, factual and disclosure checks. Generated audio and AI images also need license checks.
+
+`.env.local`, `.env`, data, database, outputs, media, model weights, logs and secrets are excluded from Git. Do not publish them. A public repository may contain project source and artwork, but rights to redistribute images and third-party libraries should be checked separately.
+
+**Known limitations:** user-facing local server is not a hardened remote service; optional subprocess AI engines and their own code/models are outside BERRY's sandbox; large video/audio rendering can exhaust CPU/RAM/disk. Never run untrusted workflows or model weights. WanGP has its own Community License; VoiceStudio is AGPL-3.0; Hunyuan3D has special Community License conditions. Review licensing before commercial use/distribution.

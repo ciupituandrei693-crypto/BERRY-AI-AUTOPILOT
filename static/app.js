@@ -8,7 +8,7 @@ const types={main90:'Video 90s',short15:'Short 15s',image:'Imagine',longform:'Yo
 const key=()=>sessionStorage.getItem('berry_key')||'';
 async function api(url,method='GET',body){const opts={method,headers:{}};if(key())opts.headers['X-BERRY-KEY']=key();if(body!==undefined){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}const r=await fetch('/api'+url,opts);if(r.status===401){const k=prompt('Introdu BERRY_ACCESS_KEY configurată local:');if(k){sessionStorage.setItem('berry_key',k);return api(url,method,body)}}if(!r.ok){let t;try{t=await r.json()}catch{t={detail:r.statusText}};throw new Error(t.detail||'Eroare')}if(r.headers.get('content-type')?.includes('application/json'))return r.json();return r.text()}
 let toastTimer;function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
-function go(page){if(!$('#page-'+page))return;state.view=page;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#view-title').textContent=({overview:'Prezentare generală',channels:'Biblioteca de personaje',planner:'Content Planner',seo:'SEO Studio',approvals:'Approval Center',budgets:'Budget Guard',integrations:'Integrări & securitate',studio:'Media Studio',qa:'Quality & Rights QA',calendar:'Calendar & Export'})[page];window.scrollTo({top:0,behavior:'smooth'})}
+function go(page){if(!$('#page-'+page))return;state.view=page;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#view-title').textContent=({overview:'Prezentare generală',channels:'Biblioteca de personaje',planner:'Content Planner',seo:'SEO Studio',approvals:'Approval Center',budgets:'Budget Guard',integrations:'Integrări & securitate',studio:'Media Studio',qa:'Quality & Rights QA',calendar:'Calendar & Export','ai-local':'AI Local Engines',analytics:'Analytics offline'})[page];window.scrollTo({top:0,behavior:'smooth'})}
 window.go=go;
 async function load(){try{const [status,channels,characters,items,batches,budget,audit]=await Promise.all([api('/status'),api('/channels'),api('/characters'),api('/items'),api('/batches'),api('/budget'),api('/audit')]);Object.assign(state,{status,channels,characters,items,batches,budget,audit});render()}catch(e){toast(e.message)}}
 function opts(){for(const id of ['#new-channel','#seo-channel','#filter-channel','#spend-channel']){const sel=$(id),old=sel.value,empty=id.includes('filter')?'<option value="">Toate canalele</option>':id.includes('spend')?'<option value="">Niciun canal (pentru GPU/general)</option>':'';sel.innerHTML=empty+state.channels.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');if([...sel.options].some(o=>o.value===old))sel.value=old}}
@@ -124,3 +124,38 @@ $('#production-start').onclick=async()=>{if(!confirm('Pornim randarea FULL pentr
 const priorGo=go;go=function(page){priorGo(page);if(page==='qa')refreshQA();if(page==='calendar')refreshCalendar();if(page==='studio'){loadScript();refreshProduction()}};window.go=go;
 load();
 if('serviceWorker'  in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+
+// ---- BERRY 1.1 RC: opt-in local AI and offline analytics ----
+async function refreshAI(){
+ try{
+  const r=await api('/engines');
+  $('#ai-engines').innerHTML=Object.entries(r.engines).map(([name,v])=>`<div class="studio-component"><div class="row-between"><strong>${esc(name)}</strong><span class="pill neutral">${v.ready?'READY':v.online?'ONLINE · CONFIG':'NECONFIGURAT'}</span></div><small>${esc(v.detail)}</small></div>`).join('');
+  const jobs=await api('/ai/jobs');
+  $('#ai-jobs').innerHTML=jobs.length?jobs.map(j=>`<div class="studio-job"><strong>#${j.id} · ${esc(j.engine)} · ${esc(j.status)}</strong><p class="muted small">${esc(j.title)} · ${esc(j.error||j.result?.filename||'În așteptare')}</p></div>`).join(''):'<div class="empty">Nu există generări AI locale.</div>';
+  const selected=$('#ai-item').value;
+  $('#ai-item').innerHTML=state.items.filter(i=>i.status==='DRAFT').map(i=>`<option value="${i.id}">#${i.id} · ${esc(i.title)}</option>`).join('')||'<option value="">Creează un material DRAFT</option>';
+  if([...$('#ai-item').options].some(o=>o.value===selected))$('#ai-item').value=selected;
+ }catch(e){toast(e.message)}
+}
+$('#ai-refresh').onclick=refreshAI;
+$('#ai-form').onsubmit=async e=>{
+ e.preventDefault();const id=Number($('#ai-item').value);if(!id)return toast('Creează un material DRAFT');
+ const engine=$('#ai-engine').value;
+ if(!confirm(`Pornești ${engine} pe PC-ul local? Poate consuma multă memorie și timp.`))return;
+ try{const r=await api('/ai/jobs','POST',{item_id:id,engine});toast(`Job AI #${r.job_id} pornit local`);await refreshAI()}catch(err){toast(err.message)}
+};
+async function refreshAnalytics(){
+ try{const r=await api('/analytics');
+ $('#analytics-channels').innerHTML=r.channels.length?r.channels.map(x=>`<div class="studio-job"><div class="row-between"><strong>${esc(names[x.channel_id]||x.channel_id)}</strong><span>${Number(x.views).toLocaleString('ro-RO')} vizualizări</span></div><p class="muted small">${x.posts} postări · ${x.engagement_percent}% interacțiuni/vizualizări</p></div>`).join(''):'<div class="empty">Nu ai importat încă statistici CSV.</div>';
+ $('#analytics-suggestions').innerHTML=r.suggestions.length?r.suggestions.map(x=>`<div class="qa-line">💡 ${esc(x)}</div>`).join(''):'<div class="empty">Recomandările apar după import.</div>';
+ }catch(e){toast(e.message)}
+}
+$('#analytics-refresh').onclick=refreshAnalytics;
+$('#analytics-upload').onclick=async()=>{
+ const file=$('#analytics-file').files[0];if(!file)return toast('Selectează un CSV');
+ const form=new FormData();form.append('file',file);const headers={};if(key())headers['X-BERRY-KEY']=key();
+ try{const r=await fetch('/api/analytics/import',{method:'POST',headers,body:form});const data=await r.json();if(!r.ok)throw Error(data.detail||'Import eșuat');toast(`${data.imported} rânduri importate, ${data.duplicates} duplicate`);await refreshAnalytics()}catch(e){toast(e.message)}
+};
+$('#upload-voice').onclick=()=>uploadAsset('#studio-voice','voice');
+$('#upload-video').onclick=()=>uploadAsset('#studio-video','video');
+const priorGoAI=go;go=function(page){priorGoAI(page);if(page==='ai-local')refreshAI();if(page==='analytics')refreshAnalytics()};window.go=go;

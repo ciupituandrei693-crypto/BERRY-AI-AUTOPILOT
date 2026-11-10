@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production
+from . import studio, workflow, production, engines, creative, analytics
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -32,9 +32,11 @@ async def lifespan(app:FastAPI):
     studio.init_jobs()
     workflow.init()
     production.init()
+    creative.init()
+    analytics.init()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='1.0.0-rc1',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='1.1.0-rc1',lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
 
 @app.middleware('http')
@@ -98,7 +100,7 @@ def get_status():
        'social_connections':0,'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
        'local_storyboard_preview_enabled':True,'local_motion_graphics_enabled':True,'local_calendar_enabled':True,'local_export_enabled':True,
-       'notice':'v1.0 RC: studio motion graphics local, QA, calendar și export manual. Nu este generare AI 3D, fără publicare online sau costuri.'}
+       'notice':'v1.1 RC: adaptoare ComfyUI, ACE-Step, WanGP și Whisper pentru motoare locale configurate; fără publicare, cloud sau costuri.'}
 
 @app.get('/api/channels',dependencies=[Depends(guarded)])
 def channels(): return db.all_rows('SELECT * FROM channels')
@@ -477,6 +479,7 @@ async def upload_art(item_id: int, file: UploadFile = File(...)):
     assets.mkdir(parents=True,exist_ok=True)
     target = assets / f'item_{item_id}.webp'
     picture.save(target,format='WEBP',quality=90)
+    (assets / f"item_{item_id}_art_source.json").unlink(missing_ok=True)
     with db.connection() as con:
         con.execute("UPDATE render_jobs SET status='STALE',updated_at=? WHERE item_id=? AND status IN ('DONE','PACKAGE_ONLY')",(db.utcnow(),item_id))
         db.audit(con,'user_art_uploaded',{'item_id':item_id,'bytes':len(raw)})
@@ -503,10 +506,113 @@ async def upload_soundtrack(item_id: int, file: UploadFile = File(...)):
         old.unlink(missing_ok=True)
     target=assets/f'item_{item_id}_soundtrack.{ext}'
     target.write_bytes(raw)
+    (assets / f"item_{item_id}_music_source.json").unlink(missing_ok=True)
     with db.connection() as con:
         con.execute("UPDATE render_jobs SET status='STALE',updated_at=? WHERE item_id=? AND status IN ('DONE','PACKAGE_ONLY')",(db.utcnow(),item_id))
         db.audit(con,'user_soundtrack_uploaded',{'item_id':item_id,'bytes':len(raw),'format':ext})
     return {'stored':True,'item_id':item_id,'filename':target.name,'source':'USER_SUPPLIED'}
+
+class CreativeStart(BaseModel):
+    item_id: int = Field(gt=0)
+    engine: Literal['comfyui','ace_step','wangp','faster_whisper','voice_studio']
+
+@app.get('/api/engines', dependencies=[Depends(guarded)])
+def local_engines():
+    return {'local_only': True, 'automatic_install': False, 'cloud': False,
+            'external_server': False, 'engines': engines.statuses()}
+
+@app.get('/api/ai/jobs', dependencies=[Depends(guarded)])
+def ai_jobs():
+    return creative.jobs()
+
+@app.post('/api/ai/jobs', status_code=202, dependencies=[Depends(guarded)])
+def ai_start(data: CreativeStart):
+    try:
+        return creative.start(data.item_id, data.engine)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+@app.post('/api/items/{item_id}/voice', dependencies=[Depends(guarded)])
+async def upload_voice(item_id: int, file: UploadFile = File(...)):
+    item = record('SELECT * FROM items WHERE id=?', (item_id,))
+    if item['status'] != 'DRAFT':
+        raise HTTPException(409, 'Vocea se poate importa doar în DRAFT')
+    raw = await file.read(25_000_001)
+    if len(raw) > 25_000_000:
+        raise HTTPException(413, 'Vocea depășește 25 MB')
+    if raw.startswith(b'RIFF') and raw[8:12] == b'WAVE':
+        ext = 'wav'
+    elif raw.startswith(b'ID3') or (len(raw)>2 and raw[0]==255 and (raw[1]&224)==224):
+        ext = 'mp3'
+    else:
+        raise HTTPException(422, 'Importă voce WAV sau MP3')
+    root = creative.assets_dir()
+    for old in root.glob(f'item_{item_id}_voice.*'):
+        old.unlink(missing_ok=True)
+    target = root / f'item_{item_id}_voice.{ext}'
+    target.write_bytes(raw)
+    creative._invalidate(item_id, 'USER_VOICE')
+    return {'stored': True, 'filename': target.name, 'source': 'USER_SUPPLIED', 'review_required': True}
+
+@app.post('/api/items/{item_id}/video', dependencies=[Depends(guarded)])
+async def upload_video(item_id: int, file: UploadFile = File(...)):
+    item = record('SELECT * FROM items WHERE id=?', (item_id,))
+    if item['status'] != 'DRAFT':
+        raise HTTPException(409, 'Video se poate importa doar în DRAFT')
+    if item['content_type'] == 'image':
+        raise HTTPException(422, 'Pentru fișele IMAGE încarcă o imagine')
+    import tempfile
+    ffmpeg = studio.binary_path('ffmpeg', 'BERRY_FFMPEG_PATH')
+    if not ffmpeg:
+        raise HTTPException(409, 'FFmpeg este necesar pentru verificarea video')
+    root = creative.assets_dir()
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=root, prefix='berry_upload_', suffix='.mp4', delete=False) as tmp:
+            temp_path = Path(tmp.name)
+            size = 0
+            first = b''
+            while chunk := await file.read(1024 * 1024):
+                size += len(chunk)
+                if size > 150_000_000:
+                    raise HTTPException(413, 'Video depășește 150 MB')
+                if not first:
+                    first = chunk[:64]
+                tmp.write(chunk)
+        if len(first) < 12 or first[4:8] != b'ftyp':
+            raise HTTPException(422, 'Fișierul nu este MP4 valid')
+        import subprocess
+        try:
+            check = subprocess.run([ffmpeg, '-hide_banner', '-loglevel', 'error', '-i', str(temp_path),
+                                    '-frames:v', '1', '-f', 'null', '-'],
+                                   capture_output=True, timeout=40, check=False)
+        except subprocess.TimeoutExpired as exc:
+            raise HTTPException(422, 'Verificarea video a expirat') from exc
+        if check.returncode:
+            raise HTTPException(422, 'FFmpeg nu poate decoda primul cadru')
+        target = root / f'item_{item_id}_video.mp4'
+        temp_path.replace(target)
+        (root / f"item_{item_id}_video_source.json").unlink(missing_ok=True)
+        temp_path = None
+        creative._invalidate(item_id, 'USER_VIDEO')
+        return {'stored': True, 'filename': target.name, 'source': 'USER_SUPPLIED', 'review_required': True}
+    finally:
+        if temp_path:
+            temp_path.unlink(missing_ok=True)
+
+@app.get('/api/analytics', dependencies=[Depends(guarded)])
+def local_analytics():
+    return analytics.report()
+
+@app.post('/api/analytics/import', dependencies=[Depends(guarded)])
+async def analytics_import(file: UploadFile = File(...)):
+    data = await file.read(1_000_001)
+    try:
+        return analytics.import_csv(data)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 @app.get('/api/integrations',dependencies=[Depends(guarded)])
 def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'NOT_CONNECTED','status':'FINAL_PHASE_ONLY'}

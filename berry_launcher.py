@@ -1,12 +1,36 @@
 """One-click Windows entrypoint for the optional PyInstaller desktop build."""
 from __future__ import annotations
 import os
+import sys
 import threading
 import time
 import urllib.error
 import urllib.request
 import webbrowser
 from pathlib import Path
+
+
+def load_local_configuration() -> None:
+    """Read optional .env.local as plain KEY=VALUE (never execute shell code)."""
+    appdir = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+    config = appdir / '.env.local'
+    if not config.is_file():
+        return
+    allowed = {
+        'BERRY_ACCESS_KEY', 'BERRY_KOBOLD_URL', 'BERRY_COMFYUI_URL', 'BERRY_COMFYUI_WORKFLOW',
+        'BERRY_ACE_STEP_URL', 'BERRY_WANGP_ROOT', 'BERRY_WANGP_PYTHON', 'BERRY_WANGP_SETTINGS',
+        'BERRY_WHISPER_MODEL', 'BERRY_WHISPER_PYTHON', 'BERRY_FFMPEG_PATH', 'BERRY_PIPER_PATH',
+        'BERRY_PIPER_MODEL', 'BERRY_BLENDER_PATH', 'BERRY_SAPI_TTS',
+        'BERRY_VOICESTUDIO_URL', 'BERRY_VOICESTUDIO_VOICE', 'BERRY_VOICESTUDIO_MODEL',
+    }
+    for raw in config.read_text(encoding='utf-8-sig').splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key, value = key.strip(), value.strip().strip('"')
+        if key in allowed and value:
+            os.environ.setdefault(key, value)
 
 
 def configure_local_storage() -> Path:
@@ -32,6 +56,7 @@ def open_when_ready():
 
 
 if __name__ == '__main__':
+    load_local_configuration()
     configure_local_storage()
     threading.Thread(target=open_when_ready, daemon=True).start()
     import uvicorn

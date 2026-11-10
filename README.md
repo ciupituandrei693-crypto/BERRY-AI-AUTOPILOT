@@ -1,15 +1,13 @@
-# 🍓 BERRY AI AUTOPILOT — Local v1.0 RC
+# BERRY AI AUTOPILOT — local-first Windows studio (v1.1 RC)
 
-**Romanian documentation:** [README_RO.md](README_RO.md)
+BERRY is a local-first FastAPI + SQLite + responsive PWA studio for five cinematic fruit-character content channels. It provides editorial planning, SEO templates, FFmpeg motion-graphics video assembly, voice/music mixing, local AI engine adapters, QA, human approvals, local scheduling, manual publishing ZIPs, offline CSV analytics, and backup.
 
-A local-first FastAPI/SQLite/PWA editorial studio for five fruit-character channels. Includes content planning, SEO templates, optional local KoboldCpp, editable scripts, user art/audio uploads, FFmpeg motion-graphics videos, optional Piper or Windows SAPI speech, QA checks, manual batch approval, a local calendar, manual ZIP exports, sequential local batch production (up to 30 items) and SQLite backup.
+**Run:** unzip and double-click `LAUNCH_BERRY.cmd` on Windows. Python 3.11+ is needed on first source launch; the launcher creates a virtual environment and installs the free requirements. For a Python-free destination, build the optional onedir executable on Windows with `BUILD_WINDOWS_EXE.cmd` (Windows build not yet verified). The local dashboard opens at `http://127.0.0.1:8765`.
 
-## One-click Windows launch
+**AI adapters** (optional, not preinstalled): ComfyUI image API, ACE-Step 1.5 music API, VoiceStudio local TTS API, WanGP Python API, faster-whisper offline subtitles, Piper/SAPI narration and KoboldCpp SEO. Each requires its own runtime and model weights. `docs/LOCAL_AI_ENGINES.md` has setup and licensing notes. Model-backed end-to-end generation has not been validated on the target hardware.
 
-Double-click `LAUNCH_BERRY.cmd` after extracting the archive. The source launcher needs Python 3.11+ and installs free pip dependencies on first launch. An optional standalone Windows folder can be built using `BUILD_WINDOWS_EXE.cmd` on Windows; that executable has **not been tested in this Linux assembly environment**.
+**Not included:** automatic social posting, OAuth, external servers, rented GPUs, cloud inference, paid advertising, validated cinematic 3D character animation/rigging/lip-sync. These are disabled and/or require further local validation. No cloud cost or posting is triggered.
 
-**Not yet included:** AI-generated cinematic 3D fruit animation, automatic singing/lipsync, ACE-Step AI music, integrated ComfyUI/WanGP model execution, automatic social posting, real analytics, cloud GPU, external server or remote phone access. Source ZIPs alone do not include model weights or validated GPU integrations.
+**Tests:** `python -m pip install -r requirements.txt -r requirements-dev.txt && python -m pytest -q`. The v1.1 RC assembly passed 28 local tests, including mocked local AI API contracts and real FFmpeg media checks. Windows exe and AI models need on-device testing.
 
-No social tokens, cloud credentials, imported user media, weights or third-party source ZIPs are committed. Publishing and real spending remain disabled. The current GitHub repository is public: confirm rights for bundled concept art before redistribution.
-
-Run tests with `python -m pytest -q` after installing `requirements.txt` and `requirements-dev.txt`. See [limitations](docs/FINALIZARE_SI_LIMITARI.md) and [security](SECURITY.md).
+Read [Romanian README](README_RO.md), [local engine guide](docs/LOCAL_AI_ENGINES.md), [status matrix](docs/STATUS_LOCAL_V11.md) and [security](SECURITY.md).

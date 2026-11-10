@@ -75,3 +75,5 @@ Thumbs.db
 
 .build-venv/
 *.spec
+# Local engine paths and per-PC settings
+.env.local

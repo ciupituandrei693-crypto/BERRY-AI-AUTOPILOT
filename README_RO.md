@@ -1,37 +1,37 @@
-# 🍓 BERRY AI AUTOPILOT — v1.0 RC (LOCAL)
+# 🍓 BERRY AI AUTOPILOT v1.1 RC — studio local Windows
 
-**Status real:** aplicație locală de planificare, SEO, generare de pachete media, montaj motion graphics, verificare QA, aprobare, calendar, export manual și randare locală în lot, plus producție secvențială locală în lot (maximum 30 de fișe). **Nu** este încă o platformă de animație 3D AI completă și **nu** publică automat pe TikTok, Instagram sau YouTube.
+**BERRY funcționează local** pentru cinci canale de personaje-fructe. Această versiune adaugă adaptoare reale pentru motoare AI locale, dar **nu conține weights, nu garantează randare AI 3D/video și nu publică online**. Conectarea la server extern și GPU cloud rămâne ultima etapă, numai cu aprobare.
 
-## Un singur buton de lansare
+## Un singur buton
 
-Pe Windows, dezarhivează pachetul și dă dublu-click pe **`LAUNCH_BERRY.cmd`**. Dacă ai compilat aplicația, butonul pornește `dist/BERRY_AI_AUTOPILOT/BERRY_AI_AUTOPILOT.exe`. Altfel pornește versiunea Python, creând automat `.venv` și instalând bibliotecile gratuite la prima utilizare. Pentru prima lansare din sursă trebuie să ai **Python 3.11+** instalat și acces la internet pentru pachetele pip. Ulterior motorul aplicației rulează local la **http://127.0.0.1:8765**.
+1. Descarcă ZIP-ul și dezarhivează folderul BERRY.
+2. Pe Windows, fă dublu-click pe **`LAUNCH_BERRY.cmd`**.
+3. Dacă nu ai deja un executabil compilat, lansatorul folosește Python **3.11+** și creează automat `.venv`/instalează dependențele gratuite la prima pornire (necesită internet atunci). După instalare, aplicația rulează la **http://127.0.0.1:8765** și se deschide automat în browser.
+4. Pentru o distribuție Windows fără Python, pe un PC Windows cu Python rulează **`BUILD_WINDOWS_EXE.cmd`** o singură dată; apoi păstrează întreg folderul `dist/BERRY_AI_AUTOPILOT`. Acest build nu a fost încă verificat pe Windows.
 
-**Pentru un executabil fără Python la utilizator:** rulează **`BUILD_WINDOWS_EXE.cmd` o singură dată pe un PC Windows cu Python**, apoi distribuie întreg folderul `dist/BERRY_AI_AUTOPILOT`. Acest build Windows este **pregătit, dar nu a putut fi verificat în mediul Linux**. Nu promitem un `.exe` autonom testat înainte de rularea scriptului pe Windows.
+## Funcții locale integrate
 
-## Fluxul complet disponibil local
+- **Content Planner:** 25 fișe pe zi lucrătoare pentru 5 canale (5×90s, 5×15s, 15 imagini), plus fișe longform YouTube 5 minute.
+- **SEO Studio:** hook, titluri, descrieri, hashtaguri, CTA și prompturi, șabloane offline sau KoboldCpp local dacă există un model GGUF pornit.
+- **Media Studio:** scenarii editabile, subtitrări SRT, imagini concept, video MP4 cu 4 scene și motion graphics FFmpeg, import de imagine, voce, muzică și MP4. Vocea și muzica se pot mixa în același video. Importul unui MP4 înlocuiește montajul standard.
+- **AI Local Engines:** ComfyUI (imagini), ACE-Step 1.5 (muzică), VoiceStudio (voce), WanGP (video), faster-whisper (SRT). Sunt adaptoare *opționale*; fiecare necesită model și runtime propriu, separat. Testele de contract cu simulatoare nu înlocuiesc un test cu model real.
+- **Quality & Rights QA:** verificare obligatorie a faptelor, drepturilor asupra imaginilor, vocii, muzicii și regulilor platformelor; video importat cu durată greșită este blocat de QA.
+- **Approval Center:** aprobare umană fără publicare automată.
+- **Calendar & Export:** planificare locală și pachet ZIP cu MP4/PNG/SRT/SEO/QA pentru publicare manuală.
+- **Producție în lot:** până la 30 fișe DRAFT procesate secvențial pe CPU; fără cheltuieli.
+- **Analytics offline:** import CSV manual cu statistici istorice și sugestii SEO bazate pe datele importate.
+- **Backup:** export SQLite local.
 
-1. **Content Planner:** planifică 25 de fișe/zi lucrătoare (5×90s, 5×15s, 15 imagini) pentru cele cinci canale; fișe suplimentare YouTube 5–10 min se pot crea separat.
-2. **SEO Studio:** titluri, hook, descrieri TikTok/Instagram/YouTube, hashtaguri și prompturi. Șabloane locale; KoboldCpp poate genera text dacă un model GGUF este instalat și pornit separat.
-3. **Media Studio:** alege DRAFT, editează scenariul, încarcă imaginea și/sau audio proprii, apasă **FULL** pentru un MP4 cu patru scene și mișcare de cameră, imagine PNG, subtitrări SRT și manifest. `preview` produce doar un clip static scurt. Pentru video este necesar FFmpeg; `imageio-ffmpeg` îl aduce automat ca dependență gratuită la prima instalare. Pe Windows, dacă nu ai Piper configurat, poate folosi vocea offline SAPI (calitatea depinde de vocile Windows).
-4. **Quality & Rights QA:** confirmă manual verificarea faptelor, drepturile asupra imaginilor, vocii, muzicii și cerințele platformei. Randarea FULL și toate confirmările sunt obligatorii înainte de programare.
-5. **Approval Center:** trimite fișele DRAFT într-un lot și aprobă-le manual. Aprobarea **nu** înseamnă publicare.
-6. **Calendar & Export:** programează local materialele aprobate cu QA valid, apoi descarcă un ZIP cu video, imagine, subtitrări, scenariu, SEO și raport QA pentru **publicare manuală**.
-7. **Backup:** descarcă baza SQLite într-o arhivă ZIP. Fișierul este privat și nu trebuie pus pe GitHub.
+## AI local: configurare
 
-## Ce NU este finalizat / nu poate fi activat fără modele sau permisiuni
+Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consultă **[`docs/LOCAL_AI_ENGINES.md`](docs/LOCAL_AI_ENGINES.md)**. Copiază `.env.example` în `.env.local` și setează doar căile locale necesare. `.env.local` și `data/` sunt ignorate de Git. Nu încărca tokenuri, fișiere private sau weights în GitHub.
 
-- Animație 3D AI cinematică cu rigging și lipsync real pentru fructe: **NU**. Motion graphics cu patru scene este o alternativă locală funcțională, nu echivalentul ei.
-- Generare de imagini AI cu ComfyUI, video AI cu WanGP, voce Chatterbox, muzică ACE-Step și lip sync MuseTalk/LatentSync: **NU sunt integrate ca motoare executabile**. Arhivele sursă nu includ automat modelele/weights și dependențele necesare.
-- Piese originale cântate de un fruct: nu sunt generate automat. Pentru FRUIT BEATS, importă o piesă originală proprie; QA blochează exportul fără ea. Lip sync pentru personaj nu este implementat.
-- Publicare automată, autentificare TikTok/Instagram/YouTube, analitice reale, promovare plătită: **NU**. Acestea sunt rezervate ultimei etape, cu aprobare separată.
-- Server extern, GPU cloud, acces iPhone din afara PC-ului: **NU**. PWA este responsive, dar `127.0.0.1` este accesibil doar de pe PC-ul local.
+## Ce rămâne pentru validare și etapa finală
 
-## Siguranță și costuri
+**Nu este finalizată** animația 3D AI cu rigging/lipsync automat și personaje perfect consistente, nici generarea AI video 5×90s pe zi verificată pe PC-ul țintă. LivePortrait/MuseTalk/LatentSync pot livra MP4 prin import local, dar nu sunt invocate nativ de BERRY. Blender, Hunyuan3D și Chatterbox nu au workflow-uri de producție validate. Licențele WanGP/VoiceStudio/Hunyuan3D și ale weights trebuie revizuite înainte de distribuție sau monetizare.
 
-Backendul ascultă exclusiv pe `127.0.0.1`. API-ul verifică origin/host, folosește antete de securitate, nu execută shell cu textul utilizatorului, limitează importurile și nu stochează tokenuri sociale. Pentru protecție suplimentară poți configura `BERRY_ACCESS_KEY` ca variabilă de mediu. **Nu expune portul 8765 pe Internet**. Kill Switch începe ACTIV și nicio publicare nu este posibilă în această versiune. Bugetele de 250 USD producție + 500 USD promovare sunt estimări de plan, nu cheltuieli efectuate.
+**ULTIMA ETAPĂ (dezactivată):** server extern, GPU închiriat, acces iPhone din afara PC-ului, OAuth, publicare automată, analytics live și promovare plătită. Nicio plată și nicio postare nu se poate executa din versiunea curentă.
 
-## Testare și dezvoltare
+## Testare
 
-`python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. Testele rulează cu baze SQLite temporare și fără servicii cloud. Versiunea v1.0 RC a trecut 21 teste automate în mediul Linux de asamblare; **testul final pe Windows este necesar**.
-
-Proiectul nu include ZIP-urile externe, weights, tokenuri, date locale sau fișierele importate de utilizator. Consultă `docs/FINALIZARE_SI_LIMITARI.md`, `SECURITY.md` și `LINKURI_GITHUB.md`.
+`python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. La asamblarea v1.1 RC au trecut **28/28 teste locale** (inclusiv simulatoare pentru API-urile AI și test FFmpeg). Testele Windows, modelele AI și buildul `.exe` rămân de validat pe calculatorul tău. Vezi `docs/STATUS_LOCAL_V11.md` și `SECURITY.md`.

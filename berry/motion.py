@@ -72,7 +72,7 @@ def _scene(art: Path, channel: str, topic: str, line: str, index: int, out: Path
 
 
 def render(outdir: Path, art: Path, channel: str, topic: str, lines: list[str], duration: int,
-           voice: Path | None = None) -> tuple[Path, Path]:
+           voice: Path | None = None, soundtrack: Path | None = None) -> tuple[Path, Path]:
     if not (ffmpeg := binary_path("ffmpeg", "BERRY_FFMPEG_PATH")):
         raise FileNotFoundError("FFmpeg nu este disponibil")
     scenes = []
@@ -102,8 +102,13 @@ def render(outdir: Path, art: Path, channel: str, topic: str, lines: list[str], 
     listfile.write_text("ffconcat version 1.0\n" + "".join(f"file '{p.name}'\n" for p in chunks), encoding="utf-8")
     video = outdir / "motion-video.mp4"
     cmd = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-safe", "0", "-f", "concat", "-i", str(listfile)]
-    if voice:
-        cmd += ["-i", str(voice), "-filter_complex", "[1:a]apad[a]", "-map", "0:v:0", "-map", "[a]"]
+    if voice and soundtrack:
+        cmd += ["-i", str(voice), "-stream_loop", "-1", "-i", str(soundtrack),
+                "-filter_complex", "[1:a]apad,volume=1.0[v];[2:a]volume=0.18[m];[v][m]amix=inputs=2:duration=longest:dropout_transition=0[a]",
+                "-map", "0:v:0", "-map", "[a]"]
+    elif voice or soundtrack:
+        audio = voice or soundtrack
+        cmd += ["-stream_loop", "-1", "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0"]
     else:
         cmd += ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100", "-map", "0:v:0", "-map", "1:a:0"]
     cmd += ["-t", str(duration), "-c:v", "copy", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", str(video)]

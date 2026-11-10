@@ -110,6 +110,11 @@ def quality(item_id: int, *, save: bool = False) -> dict:
             reasons.append("Nu există MP4 complet")
         if item["content_type"] == "image" and not result.get("image_created"):
             reasons.append("Nu există imagine exportabilă")
+        if item["content_type"] != "image" and result.get("render_kind") == "IMPORTED_OR_GENERATED_LOCAL_VIDEO":
+            actual = result.get("rendered_duration_seconds")
+            target = result.get("target_duration_seconds")
+            if actual is None or target is None or abs(actual - target) > 2:
+                reasons.append("Durata MP4 local nu corespunde formatului; verifică 15/90/300 secunde")
         if result.get("render_kind") != "AI_3D_ANIMATION":
             warnings.append("Material concept/motion graphics; nu este animație 3D AI")
         if item["channel_id"] == "beats" and not (result.get("music_generated") or result.get("music_supplied")):

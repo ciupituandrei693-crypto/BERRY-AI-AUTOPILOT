@@ -1,10 +1,12 @@
-# Validation — BERRY v1.0 RC
+# Validare BERRY v1.1 RC
 
-- 21/21 Python tests passed on Linux (FastAPI, SQLite, SEO, QA, approvals, media rendering, calendar, exports, backup, origin/host security).
-- Node.js `node --check static/app.js` passed.
-- Python `compileall` passed.
-- FFmpeg motion graphics FULL 15 seconds produced a valid MP4 in a temporary test directory.
-- No real social account, GPU cloud or remote server used.
-- **Not tested**: Windows `.cmd` launcher, PyInstaller executable, Piper voice on Windows, Windows SAPI, 90/300-second render on the user's PC, AI model weights or full cinematic 3D animation.
+- 28/28 teste pytest trecute în mediul Linux de asamblare.
+- FastAPI + SQLite, SEO, planificare, aprobare, QA, calendar, export ZIP și backup: testate.
+- FFmpeg: preview MP4, motion graphics și import/mix audio-video testate local.
+- ComfyUI, ACE-Step 1.5, VoiceStudio: contractele API testate cu răspunsuri simulate. **Nu** s-au executat modele reale.
+- WanGP și faster-whisper: adaptoare locale și verificări de configurare; runtime-ul/modelul real nu au fost testate.
+- Analytics CSV: import și duplicate testate.
+- Fără acces extern, fără OAuth, fără postări, fără plăți.
+- Windows, EXE și VRAM: **netestate** în acest mediu; trebuie verificate pe PC.
 
-The above is an implementation/QA milestone, not certification of all requested AI media generation.
+Comenzi: `python -m pip install -r requirements.txt -r requirements-dev.txt`, `python -m pytest -q`.
