@@ -10,12 +10,12 @@ from berry import model_bridge
 
 def make_config(tmp_path, monkeypatch, engine="latentsync", argv=None):
     root = tmp_path / "engine"
-    root.mkdir()
+    root.mkdir(exist_ok=True)
     python = tmp_path / "python.exe"
     python.write_bytes(b"local-python")
     (root / "inference.py").write_text("print('not executed')", encoding="utf-8")
     weights = root / "checkpoints"
-    weights.mkdir()
+    weights.mkdir(exist_ok=True)
     (weights / "model.pt").write_bytes(b"fake weights")
     config = tmp_path / "bridge.json"
     config.write_text(json.dumps({"engines": {engine: {
