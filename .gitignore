@@ -77,3 +77,7 @@ Thumbs.db
 *.spec
 # Local engine paths and per-PC settings
 .env.local
+
+# User-specific local model bridge and PC benchmark reports
+model_bridge.local.json
+pc_validation_*.json
