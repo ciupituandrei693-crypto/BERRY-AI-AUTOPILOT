@@ -201,7 +201,14 @@ def main():
     scene.frame_set(1)
     bpy.ops.wm.save_as_mainfile(filepath=config['blend'])
     bpy.ops.render.render(animation=True)
-    print('BERRY_RIG3D_DONE', config['output'])
+    # Blender may append a frame range before .mp4 for animation renders.
+    target = Path(config['output'])
+    if not target.is_file():
+        candidates = sorted(target.parent.glob(target.stem + '*.mp4'), key=lambda f: f.stat().st_mtime, reverse=True)
+        if not candidates:
+            raise RuntimeError('Blender did not create the expected MP4')
+        candidates[0].replace(target)
+    print('BERRY_RIG3D_DONE', str(target))
 
 
 if __name__ == '__main__':
