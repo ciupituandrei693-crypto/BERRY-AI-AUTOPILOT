@@ -514,7 +514,7 @@ async def upload_soundtrack(item_id: int, file: UploadFile = File(...)):
 
 class CreativeStart(BaseModel):
     item_id: int = Field(gt=0)
-    engine: Literal['comfyui','ace_step','wangp','faster_whisper','voice_studio','blender_3d']
+    engine: Literal['comfyui','ace_step','wangp','faster_whisper','voice_studio','blender_3d','liveportrait','musetalk','latentsync','hunyuan3d']
 
 @app.get('/api/engines', dependencies=[Depends(guarded)])
 def local_engines():
