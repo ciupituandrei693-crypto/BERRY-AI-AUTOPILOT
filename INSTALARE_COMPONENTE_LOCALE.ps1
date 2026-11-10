@@ -304,8 +304,13 @@ if (-not (Ask 'Continui cu instalarea locala?')) {
       Record 'LatentSync 1.6' 'SKIP' 'Cerintele GPU sunt prea mari sau insuficient verificate.'
     }
   }
-  # Upstream-specific installation: these projects require their own CUDA/PyTorch/Conda
-  # environments. Never blindly pip-install all of them into the BERRY environment.
+  # Optional upstream-specific environments are always isolated from BERRY.
+  if ($Nvidia -and (Ask 'Pregatesc si mediile Python separate pentru LivePortrait/MuseTalk/Hunyuan3D/ACE-Step si WanGP?')) {
+    & (Join-Path $Root 'tools/INSTALL_AI_RUNTIMES_WINDOWS.ps1') -ProjectRoot $Root
+    Record 'AI runtimes separate' 'INSTALLER_RAN' 'Verifica raportul ai_runtimes_*.json; nu inseamna inferenta validata.'
+  }
+  # These projects require their own CUDA/PyTorch/Conda environments.
+  # Never blindly pip-install all of them into the BERRY environment.
   Record 'LivePortrait runtime' 'MANUAL' 'Python 3.10 + PyTorch/requirements conform README; configureaza weights si bridge.'
   Record 'MuseTalk runtime' 'MANUAL' 'Conda Python 3.10, CUDA si dependentele auxiliare conform README.'
   Record 'LatentSync runtime' 'MANUAL' 'Upstream setup_env.sh este Linux; configurare Windows separata.'
