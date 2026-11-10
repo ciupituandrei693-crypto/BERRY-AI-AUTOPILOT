@@ -22,7 +22,7 @@
   <button class="nav-btn" data-page="budgets">▣ <span>Bugete</span></button>
   <button class="nav-btn" data-page="integrations">⚙ <span>Integrări</span></button>
  </nav>
- <div class="side-bottom"><span class="online-dot"></span> Local · fără server/GPU <br><span class="muted small">Versiune 1.1 RC • local</span></div>
+ <div class="side-bottom"><span class="online-dot"></span> Local · fără server/GPU <br><span class="muted small">Versiune 1.3 RC • local</span></div>
 </aside>
 <main class="main">
  <header class="topbar"><div><div class="eyebrow">BERRY / CENTRAL COMMAND</div><h1 id="view-title">Prezentare generală</h1></div><div class="topbar-actions"><span class="pill" id="mode-pill">SEMI-AUTOPILOT</span><button class="btn small" id="refresh">↻ Actualizează</button></div></header>
@@ -69,7 +69,7 @@
   <div class="split split-wide"><div class="panel"><h3>Generare locală explicită</h3>
    <form id="ai-form" class="form">
     <label>Material DRAFT<select id="ai-item" required></select></label>
-    <label>Motor<select id="ai-engine"><option value="comfyui">ComfyUI — imagine AI</option><option value="ace_step">ACE-Step 1.5 — muzică originală FRUIT BEATS</option><option value="wangp">WanGP — video AI</option><option value="faster_whisper">faster-whisper — subtitrări din voce</option><option value="voice_studio">VoiceStudio — voce AI locală</option><option value="blender_3d">Blender — personaj 3D rigged + lipsync local</option></select></label>
+    <label>Motor<select id="ai-engine"><option value="comfyui">ComfyUI — imagine AI</option><option value="ace_step">ACE-Step 1.5 — muzică originală FRUIT BEATS</option><option value="wangp">WanGP — video AI</option><option value="faster_whisper">faster-whisper — subtitrări din voce</option><option value="voice_studio">VoiceStudio — voce AI locală</option><option value="blender_3d">Blender — personaj 3D rigged + lipsync local</option><option value="liveportrait">LivePortrait — animație facială</option><option value="musetalk">MuseTalk — lipsync video</option><option value="latentsync">LatentSync — lipsync AI</option><option value="hunyuan3d">Hunyuan3D — mesh 3D (fără rig automat)</option></select></label>
     <button class="btn primary" type="submit">▶ Generează cu motorul local</button>
    </form><p class="muted small">ComfyUI necesită workflow API JSON cu {{PROMPT}}. ACE-Step necesită server local. WanGP necesită settings JSON exportate. Whisper necesită model și Python local. Consultă docs/LOCAL_AI_ENGINES.md.</p>
    <div class="divider"></div><h3>Istoric AI local</h3><div id="ai-jobs" class="content-list"></div>
