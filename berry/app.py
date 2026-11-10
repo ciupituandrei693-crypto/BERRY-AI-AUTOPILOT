@@ -615,7 +615,7 @@ async def analytics_import(file: UploadFile = File(...)):
         raise HTTPException(422, str(exc)) from exc
 
 @app.get('/api/integrations',dependencies=[Depends(guarded)])
-def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'NOT_CONNECTED','status':'FINAL_PHASE_ONLY'}
+def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'OPTIONAL_LOCAL_ENGINES','status':'REMOTE_AND_SOCIAL_FINAL_PHASE_ONLY'}
 
 @app.get('/')
 def home():return FileResponse(STATIC/'index.html')
