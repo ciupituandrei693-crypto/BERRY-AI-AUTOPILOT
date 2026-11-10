@@ -36,7 +36,7 @@ async def lifespan(app:FastAPI):
     analytics.init()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='1.2.0-rc1',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='1.3.0-rc1',lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
 
 @app.middleware('http')
@@ -100,7 +100,7 @@ def get_status():
        'social_connections':0,'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
        'local_storyboard_preview_enabled':True,'local_motion_graphics_enabled':True,'local_calendar_enabled':True,'local_export_enabled':True,
-       'notice':'v1.2 RC: Blender rig 3D procedural + Rhubarb lipsync opțional, fără publicare, cloud sau costuri.'}
+       'notice':'v1.3 RC: bridge facial AI/3D local configurabil și teste PC; fără publicare, cloud sau costuri.'}
 
 @app.get('/api/channels',dependencies=[Depends(guarded)])
 def channels(): return db.all_rows('SELECT * FROM channels')
