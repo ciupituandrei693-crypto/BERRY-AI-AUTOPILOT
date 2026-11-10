@@ -140,6 +140,25 @@ def _pytest() -> dict:
                  message[-300:], seconds)
 
 
+
+def _recommendations(system: dict, steps: list[dict]) -> list[str]:
+    advice = ["Păstrează un singur job AI activ și revizuirea umană înainte de export.",
+              "Începe cu 180-360px, 8-12 FPS și randări de 2-6 secunde pentru Blender."]
+    gpus = system.get("system", {}).get("gpus", [])
+    names = " ".join(str(x.get("name", "")) for x in gpus).lower()
+    if "radeon" in names or "amd" in names:
+        advice.append("GPU AMD detectat: verifică suportul exact al fiecărui model; multe pipeline-uri CUDA necesită NVIDIA.")
+    if any(x["name"].startswith("Blender") and x["status"] == "FAIL" for x in steps):
+        advice.append("Blender a eșuat: verifică versiunea Blender, driverul GPU și rulează inițial cu rezoluție mică.")
+    if any(x["name"].startswith("Windows EXE") and x["status"] == "SKIP" for x in steps):
+        advice.append("Executabilul Windows nu a fost testat; rulează BUILD_WINDOWS_EXE.cmd și repetă validarea.")
+    free = system.get("system", {}).get("disk_free_gib")
+    if isinstance(free, (int, float)) and free < 20:
+        advice.append("Sub 20 GiB liberi: eliberează spațiu înainte de instalarea checkpoints mari.")
+    advice.append("Nu activa server extern, GPU cloud sau publicare automată înainte de aprobarea separată.")
+    return advice
+
+
 def validate(full: bool = False, tests: bool = False) -> dict:
     from berry import diagnostics, model_bridge
     report = {"product": "BERRY AI AUTOPILOT", "phase": "LOCAL_STAGES_1_TO_11",
@@ -161,6 +180,7 @@ def validate(full: bool = False, tests: bool = False) -> dict:
         if tests:
             report["steps"].append(_pytest())
     report["model_bridges"] = {name: model_bridge.status(name) for name in model_bridge.KINDS}
+    report["optimization_recommendations"] = _recommendations(report["system"], report["steps"])
     report["counts"] = {s: sum(x["status"] == s for x in report["steps"])
                         for s in ("PASS", "FAIL", "SKIP")}
     report["local_media_benchmark_completed"] = any(x["name"].startswith(("FFmpeg", "Blender")) and x["status"] == "PASS" for x in report["steps"])
