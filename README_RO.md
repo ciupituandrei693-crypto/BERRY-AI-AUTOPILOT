@@ -54,6 +54,10 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 - **Windows EXE, randarea reală și performanța GPU nu sunt încă validate pe PC-ul tău.** Instrucțiuni: `docs/LOCAL_FINAL_STAGES_1_TO_11.md`.
 - **Etapa 12 (server, GPU cloud, conturi sociale, publicare și plăți) rămâne dezactivată.**
 
-## Instalarea asistată a componentelor gratuite
+## Instalare completa asistata Windows
 
-Pe Windows rulează `INSTALARE_COMPONENTE_LOCALE.cmd` (dublu click). Scriptul PowerShell cere confirmare pentru Python, Git, FFmpeg, Blender, dependențele Python și clonarea surselor LivePortrait/MuseTalk/LatentSync/Hunyuan3D/Rhubarb. Necesită internet la instalare; nu activează cloud sau servicii plătite. **Nu instalează weights/checkpoints, drivere GPU, executabilul Rhubarb sau mediile Python ale modelelor AI**. Acestea se configurează separat după verificarea licenței și compatibilității hardware. Instalarea nu a fost executată pe PC-ul utilizatorului.
+**Porneste `INSTALARE_TOATE_COMPONENTELE.cmd`** (sau `INSTALARE_COMPONENTE_LOCALE.cmd`). Instalatorul poate instala, cu confirmare, Python/Git/7-Zip/FFmpeg/Blender, Rhubarb Windows executabil, VoiceStudio Windows, ComfyUI portable pentru GPU, PyInstaller, Piper si faster-whisper. Poate descarca si modelele locale selectate (Hugging Face), sursele LivePortrait/MuseTalk/LatentSync/Hunyuan3D/WanGP/ACE-Step si poate pregati medii Python izolate pentru motoarele CUDA compatibile.
+
+**Nu inseamna ca toate motoarele vor rula automat.** Modelele AI mari pot necesita alte checkpoints, CUDA, drivere, Conda, licente si configurari specifice. Pe placi AMD mai vechi sau NVIDIA cu VRAM insuficient, unele modele sunt omise in mod intentionat. LatentSync 1.6 cere cel putin 18 GB VRAM conform autorilor. Scriptul cere confirmare inaintea descarcarilor mari si salveaza un raport `install_*.json` in `%LOCALAPPDATA%\BERRY_AI_AUTOPILOT\reports`.
+
+**Instalarea nu a fost executata pe PC-ul utilizatorului.** Pentru explicatii, limitari si verificare vezi [ghidul complet](docs/INSTALARE_COMPLETA_WINDOWS.md). Dupa instalare ruleaza `TESTE_FINALE_PC.cmd` si trimite raportul. Etapa 12 (cloud/server/OAuth/publicare/plati) ramane dezactivata.
