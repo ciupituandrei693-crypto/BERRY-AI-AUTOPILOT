@@ -1,0 +1,72 @@
+{
+  "note": "EXEMPLU: înlocuiește căile, instalează weights local, verifică versiunea CLI. Nicio comandă nu se execută automat.",
+  "engines": {
+    "liveportrait": {
+      "root": "C:/BERRY_MODELS/LivePortrait",
+      "python": "C:/BERRY_MODELS/LivePortrait/.venv/Scripts/python.exe",
+      "argv": [
+        "inference.py",
+        "-s",
+        "{image}",
+        "-d",
+        "{video}",
+        "-o",
+        "{outdir}"
+      ],
+      "weights": []
+    },
+    "musetalk": {
+      "root": "C:/BERRY_MODELS/MuseTalk",
+      "python": "C:/BERRY_MODELS/MuseTalk/.venv/Scripts/python.exe",
+      "argv": [
+        "-m",
+        "scripts.inference",
+        "--inference_config",
+        "{yaml}",
+        "--result_dir",
+        "{outdir}",
+        "--unet_model_path",
+        "models/musetalkV15/unet.pth",
+        "--unet_config",
+        "models/musetalkV15/musetalk.json",
+        "--version",
+        "v15"
+      ],
+      "weights": [
+        "models/musetalkV15/unet.pth",
+        "models/musetalkV15/musetalk.json"
+      ]
+    },
+    "latentsync": {
+      "root": "C:/BERRY_MODELS/LatentSync",
+      "python": "C:/BERRY_MODELS/LatentSync/.venv/Scripts/python.exe",
+      "argv": [
+        "-m",
+        "scripts.inference",
+        "--unet_config_path",
+        "configs/unet/stage2_512.yaml",
+        "--inference_ckpt_path",
+        "checkpoints/latentsync_unet.pt",
+        "--inference_steps",
+        "20",
+        "--guidance_scale",
+        "1.5",
+        "--video_path",
+        "{video}",
+        "--audio_path",
+        "{voice}",
+        "--video_out_path",
+        "{output}"
+      ],
+      "weights": [
+        "checkpoints/latentsync_unet.pt"
+      ]
+    },
+    "hunyuan3d": {
+      "root": "C:/BERRY_MODELS/Hunyuan3D-2",
+      "python": "C:/BERRY_MODELS/Hunyuan3D-2/.venv/Scripts/python.exe",
+      "argv": [],
+      "weights": []
+    }
+  }
+}
