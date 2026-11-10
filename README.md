@@ -1,4 +1,4 @@
-# BERRY AI AUTOPILOT — local-first Windows studio (v1.1 RC)
+# BERRY AI AUTOPILOT — local-first Windows studio (v1.3 RC)
 
 BERRY is a local-first FastAPI + SQLite + responsive PWA studio for five cinematic fruit-character content channels. It provides editorial planning, SEO templates, FFmpeg motion-graphics video assembly, voice/music mixing, local AI engine adapters, QA, human approvals, local scheduling, manual publishing ZIPs, offline CSV analytics, and backup.
 
@@ -6,8 +6,14 @@ BERRY is a local-first FastAPI + SQLite + responsive PWA studio for five cinemat
 
 **AI adapters** (optional, not preinstalled): ComfyUI image API, ACE-Step 1.5 music API, VoiceStudio local TTS API, WanGP Python API, faster-whisper offline subtitles, Piper/SAPI narration and KoboldCpp SEO. Each requires its own runtime and model weights. `docs/LOCAL_AI_ENGINES.md` has setup and licensing notes. Model-backed end-to-end generation has not been validated on the target hardware.
 
-**Not included:** automatic social posting, OAuth, external servers, rented GPUs, cloud inference, paid advertising, validated cinematic 3D character animation/rigging/lip-sync. These are disabled and/or require further local validation. No cloud cost or posting is triggered.
+**Not included:** automatic social posting, OAuth, external servers, rented GPUs, cloud inference, paid advertising, validated model-backed cinematic 3D generation on target hardware. These are disabled and/or require further local validation. No cloud cost or posting is triggered.
 
 **Tests:** `python -m pip install -r requirements.txt -r requirements-dev.txt && python -m pytest -q`. The v1.1 RC assembly passed 28 local tests, including mocked local AI API contracts and real FFmpeg media checks. Windows exe and AI models need on-device testing.
 
 Read [Romanian README](README_RO.md), [local engine guide](docs/LOCAL_AI_ENGINES.md), [status matrix](docs/STATUS_LOCAL_V11.md) and [security](SECURITY.md).
+
+## Local completion through PC validation (v1.3 RC)
+
+A user-configured offline bridge now supports LivePortrait, MuseTalk, LatentSync and Hunyuan3D local Python entrypoints. This is **not** a claim that weights are installed or the models have been executed successfully. The source ZIP archives supplied in chat could not be inspected byte-for-byte in the current runtime. CLI templates must be checked against the exact source versions. See `tools/model_bridge.example.json` and `docs/LOCAL_FINAL_STAGES_1_TO_11.md`.
+
+For the Windows-only real performance and app checks, run `TESTE_FINALE_PC.cmd`. This creates a local JSON report, with PASS/FAIL/SKIP for FastAPI/SQLite, FFmpeg, Blender, Windows EXE (if built), and pytest. It does not automatically run heavyweight generative models or enable external services. To build the Windows EXE, run `BUILD_WINDOWS_EXE.cmd` first. **Actual Windows hardware results remain unverified until run on the user's PC.**
