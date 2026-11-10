@@ -84,3 +84,7 @@ pc_validation_*.json
 
 # Cloned third-party engine sources (local only)
 local_engines/
+
+# Large local model checkpoints / downloads (never commit)
+local_models/
+local_engines/
