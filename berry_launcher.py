@@ -23,6 +23,7 @@ def load_local_configuration() -> None:
         'BERRY_PIPER_MODEL', 'BERRY_BLENDER_PATH', 'BERRY_SAPI_TTS',
         'BERRY_VOICESTUDIO_URL', 'BERRY_VOICESTUDIO_VOICE', 'BERRY_VOICESTUDIO_MODEL',
         'BERRY_RHUBARB_PATH', 'BERRY_3D_MAX_SECONDS', 'BERRY_3D_WIDTH', 'BERRY_3D_FPS',
+        'BERRY_MODEL_BRIDGE_CONFIG', 'BERRY_BRIDGE_TIMEOUT',
     }
     for raw in config.read_text(encoding='utf-8-sig').splitlines():
         line = raw.strip()
