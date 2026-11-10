@@ -22,7 +22,7 @@ from . import db, engines, studio
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = threading.Lock()
-ENGINES = ("comfyui", "ace_step", "wangp", "faster_whisper", "voice_studio")
+ENGINES = ("comfyui", "ace_step", "wangp", "faster_whisper", "voice_studio", "blender_3d")
 
 
 def assets_dir() -> Path:
@@ -95,6 +95,7 @@ def _worker(job_id: int, item: dict) -> None:
             return
         engine = row["engine"]
         _mark(job_id, "RUNNING")
+        started = time.monotonic()
         try:
             if engine == "comfyui":
                 result = comfyui_image(item)
@@ -104,8 +105,15 @@ def _worker(job_id: int, item: dict) -> None:
                 result = wangp_video(item, job_id)
             elif engine == "voice_studio":
                 result = voicestudio_tts(item)
+            elif engine == "blender_3d":
+                from . import three_d
+                result = three_d.render_item(item, job_id)
             else:
                 result = whisper_subtitles(item, job_id)
+            result["elapsed_seconds"] = round(time.monotonic() - started, 2)
+            if engine == "blender_3d" and result["elapsed_seconds"] > 0:
+                result["measured_render_fps"] = round(result["rendered_frames"] / result["elapsed_seconds"], 2)
+            result["model_benchmark_on_this_pc"] = engine != "blender_3d"
             _invalidate(item["id"], engine)
             _mark(job_id, "DONE", result)
         except Exception as exc:

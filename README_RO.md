@@ -35,3 +35,11 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 ## Testare
 
 `python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. La asamblarea v1.1 RC au trecut **28/28 teste locale** (inclusiv simulatoare pentru API-urile AI și test FFmpeg). Testele Windows, modelele AI și buildul `.exe` rămân de validat pe calculatorul tău. Vezi `docs/STATUS_LOCAL_V11.md` și `SECURITY.md`.
+
+## Nou în v1.2 RC — animație 3D locală
+
+- **Blender procedural 3D**: armature, mișcări de corp/brațe/cap, gură cu shape keys A–H/X și MP4 vertical + `.blend` editabil.
+- **Lip-sync**: Rhubarb local opțional pentru cue-uri fonetice; fallback din energie audio este aproximativ, fără foneme.
+- **Diagnostic PC / Windows** în AI Local Engines, timp de randare măsurat în istoricul joburilor.
+- **Windows EXE**: scriptul de build verifică automat executabilul cu `--self-test` după compilare. Nu este un EXE deja compilat și testat pe PC-ul utilizatorului.
+- **Modelele AI nu sunt incluse și nu au fost benchmarkate pe hardware-ul utilizatorului**. Vezi `docs/LOCAL_3D_RIGGING_LIPSYNC_WINDOWS.md`.

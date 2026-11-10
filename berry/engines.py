@@ -122,6 +122,12 @@ def statuses() -> dict:
     result["blender"] = {"configured": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "online": False,
                          "ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
                          "detail": "Executabil Blender disponibil; script procedural 3D opțional"}
+    result["rhubarb"] = {"configured": bool(binary_path("rhubarb", "BERRY_RHUBARB_PATH")),
+                          "online": False, "ready": bool(binary_path("rhubarb", "BERRY_RHUBARB_PATH")),
+                          "detail": "Sincronizare fonetică locală A-H dacă Rhubarb este instalat; altfel doar energie aproximativă"}
+    result["blender_3d"] = {"configured": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
+                            "online": False, "ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
+                            "detail": "Rig 3D procedural + shape keys; testul de randare reală trebuie rulat local"}
     result["piper"] = {"configured": _local_file("BERRY_PIPER_MODEL"), "online": False,
                        "ready": bool(binary_path("piper", "BERRY_PIPER_PATH") and _local_file("BERRY_PIPER_MODEL")),
                        "detail": "Voce TTS locală cu model ONNX"}

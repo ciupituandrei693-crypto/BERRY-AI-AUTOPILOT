@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production, engines, creative, analytics
+from . import studio, workflow, production, engines, creative, analytics, diagnostics
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -36,7 +36,7 @@ async def lifespan(app:FastAPI):
     analytics.init()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='1.1.0-rc1',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='1.2.0-rc1',lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
 
 @app.middleware('http')
@@ -100,7 +100,7 @@ def get_status():
        'social_connections':0,'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
        'local_storyboard_preview_enabled':True,'local_motion_graphics_enabled':True,'local_calendar_enabled':True,'local_export_enabled':True,
-       'notice':'v1.1 RC: adaptoare ComfyUI, ACE-Step, WanGP și Whisper pentru motoare locale configurate; fără publicare, cloud sau costuri.'}
+       'notice':'v1.2 RC: Blender rig 3D procedural + Rhubarb lipsync opțional, fără publicare, cloud sau costuri.'}
 
 @app.get('/api/channels',dependencies=[Depends(guarded)])
 def channels(): return db.all_rows('SELECT * FROM channels')
@@ -514,12 +514,16 @@ async def upload_soundtrack(item_id: int, file: UploadFile = File(...)):
 
 class CreativeStart(BaseModel):
     item_id: int = Field(gt=0)
-    engine: Literal['comfyui','ace_step','wangp','faster_whisper','voice_studio']
+    engine: Literal['comfyui','ace_step','wangp','faster_whisper','voice_studio','blender_3d']
 
 @app.get('/api/engines', dependencies=[Depends(guarded)])
 def local_engines():
     return {'local_only': True, 'automatic_install': False, 'cloud': False,
             'external_server': False, 'engines': engines.statuses()}
+
+@app.get('/api/local/diagnostics', dependencies=[Depends(guarded)])
+def local_diagnostics():
+    return diagnostics.report()
 
 @app.get('/api/ai/jobs', dependencies=[Depends(guarded)])
 def ai_jobs():

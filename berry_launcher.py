@@ -22,6 +22,7 @@ def load_local_configuration() -> None:
         'BERRY_WHISPER_MODEL', 'BERRY_WHISPER_PYTHON', 'BERRY_FFMPEG_PATH', 'BERRY_PIPER_PATH',
         'BERRY_PIPER_MODEL', 'BERRY_BLENDER_PATH', 'BERRY_SAPI_TTS',
         'BERRY_VOICESTUDIO_URL', 'BERRY_VOICESTUDIO_VOICE', 'BERRY_VOICESTUDIO_MODEL',
+        'BERRY_RHUBARB_PATH', 'BERRY_3D_MAX_SECONDS', 'BERRY_3D_WIDTH', 'BERRY_3D_FPS',
     }
     for raw in config.read_text(encoding='utf-8-sig').splitlines():
         line = raw.strip()
@@ -56,6 +57,13 @@ def open_when_ready():
 
 
 if __name__ == '__main__':
+    if '--self-test' in sys.argv:
+        import json
+        from berry import diagnostics
+        from berry.app import app  # ensure the frozen build contains the ASGI application
+        result = diagnostics.report()
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        sys.exit(0 if result['application']['imports_ok'] and result['application']['static_ok'] else 1)
     load_local_configuration()
     configure_local_storage()
     threading.Thread(target=open_when_ready, daemon=True).start()

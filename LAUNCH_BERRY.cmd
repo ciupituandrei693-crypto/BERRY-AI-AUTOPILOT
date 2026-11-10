@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title BERRY AI AUTOPILOT - Local Studio v1.1 RC
+title BERRY AI AUTOPILOT - Local Studio v1.2 RC
 if exist "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe" (
   "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe"
   exit /b %errorlevel%
@@ -28,11 +28,11 @@ if not exist ".venv\Scripts\python.exe" (
   %BERRY_PYTHON% -m venv .venv
   if errorlevel 1 goto fail
 )
-if not exist ".venv\berry-ready-v11.flag" (
+if not exist ".venv\berry-ready-v12.flag" (
   echo [BERRY] Instalez dependentele gratuite - necesita internet doar prima data...
   ".venv\Scripts\python.exe" -m pip install -r requirements.txt
   if errorlevel 1 goto fail
-  echo ready>".venv\berry-ready-v11.flag"
+  echo ready>".venv\berry-ready-v12.flag"
 )
 echo.
 echo [BERRY] Pornesc aplicatia local la http://127.0.0.1:8765

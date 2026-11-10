@@ -131,7 +131,7 @@ async function refreshAI(){
   const r=await api('/engines');
   $('#ai-engines').innerHTML=Object.entries(r.engines).map(([name,v])=>`<div class="studio-component"><div class="row-between"><strong>${esc(name)}</strong><span class="pill neutral">${v.ready?'READY':v.online?'ONLINE · CONFIG':'NECONFIGURAT'}</span></div><small>${esc(v.detail)}</small></div>`).join('');
   const jobs=await api('/ai/jobs');
-  $('#ai-jobs').innerHTML=jobs.length?jobs.map(j=>`<div class="studio-job"><strong>#${j.id} · ${esc(j.engine)} · ${esc(j.status)}</strong><p class="muted small">${esc(j.title)} · ${esc(j.error||j.result?.filename||'În așteptare')}</p></div>`).join(''):'<div class="empty">Nu există generări AI locale.</div>';
+  $('#ai-jobs').innerHTML=jobs.length?jobs.map(j=>`<div class="studio-job"><strong>#${j.id} · ${esc(j.engine)} · ${esc(j.status)}</strong><p class="muted small">${esc(j.title)} · ${esc(j.error||((j.result?.filename||'În așteptare')+(j.result?.elapsed_seconds!==undefined?' · '+j.result.elapsed_seconds+' sec':'') ))}</p></div>`).join(''):'<div class="empty">Nu există generări AI locale.</div>';
   const selected=$('#ai-item').value;
   $('#ai-item').innerHTML=state.items.filter(i=>i.status==='DRAFT').map(i=>`<option value="${i.id}">#${i.id} · ${esc(i.title)}</option>`).join('')||'<option value="">Creează un material DRAFT</option>';
   if([...$('#ai-item').options].some(o=>o.value===selected))$('#ai-item').value=selected;
@@ -159,3 +159,6 @@ $('#analytics-upload').onclick=async()=>{
 $('#upload-voice').onclick=()=>uploadAsset('#studio-voice','voice');
 $('#upload-video').onclick=()=>uploadAsset('#studio-video','video');
 const priorGoAI=go;go=function(page){priorGoAI(page);if(page==='ai-local')refreshAI();if(page==='analytics')refreshAnalytics()};window.go=go;
+
+// Diagnostic only: no AI generation, downloads or network requests outside localhost.
+if(document.querySelector("#local-diagnostics")){document.querySelector("#local-diagnostics").onclick=async()=>{const out=document.querySelector("#local-diagnostics-report");out.textContent="Se verifică sistemul local...";try{const response=await fetch("/api/local/diagnostics");if(!response.ok)throw Error("HTTP "+response.status);out.textContent=JSON.stringify(await response.json(),null,2)}catch(e){out.textContent="Diagnostic indisponibil: "+String(e.message)}};}

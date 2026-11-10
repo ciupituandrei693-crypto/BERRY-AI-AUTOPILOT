@@ -60,7 +60,7 @@ def capabilities() -> dict:
         "piper": {"ready": bool(piper and model and model.is_file()), "detail": "TTS local, dacă vocea .onnx este configurată"},
         "windows_sapi": {"ready": os.name == "nt", "detail": "Voce offline Windows inclusă în sistem; calitatea depinde de vocile instalate"},
         "koboldcpp": {"ready": False, "detail": "Adaptor disponibil; modelul local trebuie pornit separat"},
-        "blender": {"ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "detail": "Detectare instalare; rigging 3D nu este integrat"},
+        "blender": {"ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "detail": "Rig 3D procedural integrat; Blender trebuie instalat și testat local"},
         "voice_studio": {"ready": False, "detail": "Sursă disponibilă, adaptor încă neintegrat"},
         "chatterbox": {"ready": False, "detail": "Sursă disponibilă, modele/integrare lipsă"},
         "faster_whisper": {"ready": False, "detail": "Sursă disponibilă; transcriere audio neintegrată"},
