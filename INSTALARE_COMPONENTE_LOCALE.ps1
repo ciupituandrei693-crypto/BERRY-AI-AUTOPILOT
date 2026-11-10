@@ -77,8 +77,12 @@ function Free-GiB {
 }
 function Clone-Source([string]$Name, [string]$Url) {
   $dest = Join-Path $Engines $Name
+  if (Test-Path (Join-Path $dest '.git')) {
+    Record $Name 'PRESENT' 'Sursa Git exista; nu este suprascrisa.'
+    return
+  }
   if (Test-Path $dest) {
-    Record $Name 'PRESENT' 'Sursa exista; nu este suprascrisa.'
+    Record $Name 'MANUAL' 'Folder partial existent; verifica si repara inainte de clonare.'
     return
   }
   if (-not (Command-Exists 'git')) {
@@ -238,8 +242,11 @@ if (-not (Ask 'Continui cu instalarea locala?')) {
   } else { Record 'VoiceStudio' 'SKIP' 'Instalare amanata.' }
   # ComfyUI official GPU-specific portable bundle; requires 7-Zip and significant disk.
   $comfy = Join-Path $Engines 'ComfyUI'
-  if (Test-Path $comfy) {
-    Record 'ComfyUI' 'PRESENT' 'Folder existent; verifica motorul si checkpoint-urile.'
+  $comfyLaunch = @(Get-ChildItem $comfy -Filter 'run_*gpu*.bat' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+  if ($comfyLaunch.Count -gt 0) {
+    Record 'ComfyUI' 'PRESENT' 'Launcher portabil detectat; verifica motorul si checkpoint-urile.'
+  } elseif (Test-Path $comfy) {
+    Record 'ComfyUI' 'MANUAL' 'Folder incomplet; muta-l sau repara-l inainte de instalare.'
   } elseif ((Free-GiB) -lt 18) {
     Record 'ComfyUI' 'SKIP' 'Sub 18 GiB liberi.'
   } elseif (-not $Nvidia -and -not $Amd) {
