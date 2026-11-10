@@ -51,7 +51,7 @@ function Add-Env([string]$Key, [string]$Value) {
   $pattern = '^\s*' + [regex]::Escape($Key) + '='
   $lines = @($lines | Where-Object { $_ -notmatch $pattern })
   $lines += ($Key + '=' + $Value.Replace('\','/'))
-  [IO.File]::WriteAllLines($file, [string[]]$lines, (New-Object System.Text.UTF8Encoding($false)))
+  [IO.File]::WriteAllLines($file, [string[]]$lines, ([System.Text.UTF8Encoding]::new($false)))
 }
 function Download-File([string]$Url, [string]$Path) {
   if (Test-Path $Path) {
@@ -147,6 +147,7 @@ try { $gpuNames = @(Get-CimInstance Win32_VideoController | ForEach-Object { $_.
 $gpu = ($gpuNames -join ' / ')
 Write-Host ('GPU detectat: ' + $gpu)
 $Nvidia = ($gpu -match 'NVIDIA')
+$Amd = ($gpu -match 'AMD|Radeon')
 if (-not $Nvidia) {
   Write-Warning 'Nu s-a detectat NVIDIA CUDA. MuseTalk, LatentSync, WanGP si unele modele 3D pot fi incompatibile sau foarte lente.'
 }
@@ -241,8 +242,11 @@ if (-not (Ask 'Continui cu instalarea locala?')) {
     Record 'ComfyUI' 'PRESENT' 'Folder existent; verifica motorul si checkpoint-urile.'
   } elseif ((Free-GiB) -lt 18) {
     Record 'ComfyUI' 'SKIP' 'Sub 18 GiB liberi.'
+  } elseif (-not $Nvidia -and -not $Amd) {
+    Record 'ComfyUI' 'MANUAL' 'GPU necunoscut/Intel: selecteaza pachetul portabil compatibil.'
   } else {
     $variant = if ($Nvidia) { 'nvidia' } else { 'amd' }
+    if ($Amd) { Write-Warning 'ComfyUI AMD necesita GPU si driver compatibil; RX 580 poate fi incompatibil cu ROCm modern.' }
     $url = 'https://github.com/Comfy-Org/ComfyUI/releases/download/v0.44.0/ComfyUI_windows_portable_' + $variant + '.7z'
     if (Ask ('Descarc ComfyUI portable ' + $variant + ' (~1.7-2.1 GB)? GPU-ul poate necesita driver/compatibilitate specifica')) {
       $archive = Join-Path $Downloads ('ComfyUI_windows_portable_' + $variant + '.7z')
