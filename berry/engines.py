@@ -112,13 +112,11 @@ def statuses() -> dict:
     result["faster_whisper"] = {"configured": _local_dir("BERRY_WHISPER_MODEL"), "online": False,
                                 "ready": _local_dir("BERRY_WHISPER_MODEL") and _local_file("BERRY_WHISPER_PYTHON"),
                                 "detail": "Model local + Python cu faster-whisper (fără descărcări automate)"}
-    for engine, env in (("liveportrait", "BERRY_LIVEPORTRAIT_ROOT"),
-                        ("musetalk", "BERRY_MUSETALK_ROOT"),
-                        ("latentsync", "BERRY_LATENTSYNC_ROOT"),
-                        ("hunyuan3d", "BERRY_HUNYUAN3D_ROOT"),
-                        ("chatterbox", "BERRY_CHATTERBOX_ROOT")):
-        result[engine] = {"configured": _local_dir(env), "online": False, "ready": False,
-                          "detail": "Repository local detectabil; execuția necesită weights, GPU și adaptare la workflow-ul modelului"}
+    from . import model_bridge
+    for engine in model_bridge.KINDS:
+        result[engine] = model_bridge.status(engine)
+    result["chatterbox"] = {"configured": _local_dir("BERRY_CHATTERBOX_ROOT"), "online": False, "ready": False,
+                            "detail": "Sursa locală nu garantează un model vocal instalat"}
     result["blender"] = {"configured": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "online": False,
                          "ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
                          "detail": "Executabil Blender disponibil; script procedural 3D opțional"}
