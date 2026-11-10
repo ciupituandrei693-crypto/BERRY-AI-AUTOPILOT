@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow
+from . import studio, workflow, production
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -31,6 +31,7 @@ async def lifespan(app:FastAPI):
     db.init_db()
     studio.init_jobs()
     workflow.init()
+    production.init()
     yield
 
 app=FastAPI(title='BERRY AI — LOCAL',version='1.0.0-rc1',lifespan=lifespan)
@@ -410,6 +411,27 @@ def calendar_package(schedule_id: int):
 def backup_download():
     content, filename = workflow.backup()
     return Response(content, media_type='application/zip', headers={'Content-Disposition':f'attachment; filename="{filename}"'})
+
+
+@app.get('/api/production/runs', dependencies=[Depends(guarded)])
+def production_runs():
+    return production.runs()
+
+@app.post('/api/production/start', status_code=202, dependencies=[Depends(guarded)])
+def production_start():
+    try:
+        return production.start()
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+@app.post('/api/production/{run_id}/cancel', dependencies=[Depends(guarded)])
+def production_cancel(run_id: int):
+    try:
+        return production.cancel(run_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 @app.get('/api/production/summary', dependencies=[Depends(guarded)])
 def production_summary():

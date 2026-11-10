@@ -1,6 +1,6 @@
 # 🍓 BERRY AI AUTOPILOT — v1.0 RC (LOCAL)
 
-**Status real:** aplicație locală de planificare, SEO, generare de pachete media, montaj motion graphics, verificare QA, aprobare, calendar și export manual. **Nu** este încă o platformă de animație 3D AI completă și **nu** publică automat pe TikTok, Instagram sau YouTube.
+**Status real:** aplicație locală de planificare, SEO, generare de pachete media, montaj motion graphics, verificare QA, aprobare, calendar, export manual și randare locală în lot, plus producție secvențială locală în lot (maximum 30 de fișe). **Nu** este încă o platformă de animație 3D AI completă și **nu** publică automat pe TikTok, Instagram sau YouTube.
 
 ## Un singur buton de lansare
 
@@ -32,6 +32,6 @@ Backendul ascultă exclusiv pe `127.0.0.1`. API-ul verifică origin/host, folose
 
 ## Testare și dezvoltare
 
-`python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. Testele rulează cu baze SQLite temporare și fără servicii cloud. Versiunea v1.0 RC a trecut 19 teste automate în mediul Linux de asamblare; **testul final pe Windows este necesar**.
+`python -m pip install -r requirements.txt -r requirements-dev.txt` apoi `python -m pytest -q`. Testele rulează cu baze SQLite temporare și fără servicii cloud. Versiunea v1.0 RC a trecut 21 teste automate în mediul Linux de asamblare; **testul final pe Windows este necesar**.
 
 Proiectul nu include ZIP-urile externe, weights, tokenuri, date locale sau fișierele importate de utilizator. Consultă `docs/FINALIZARE_SI_LIMITARI.md`, `SECURITY.md` și `LINKURI_GITHUB.md`.

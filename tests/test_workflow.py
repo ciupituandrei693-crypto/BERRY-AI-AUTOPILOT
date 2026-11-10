@@ -18,6 +18,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(db, 'DB', tmp_path / 'db.sqlite3')
     monkeypatch.setenv('BERRY_OUTPUT_DIR', str(tmp_path / 'outputs'))
     monkeypatch.setenv('BERRY_ASSET_DIR', str(tmp_path / 'assets'))
+    monkeypatch.setenv('BERRY_SCRIPT_DIR', str(tmp_path / 'scripts'))
     monkeypatch.delenv('BERRY_PIPER_MODEL', raising=False)
     with TestClient(app) as c:
         yield c
@@ -143,3 +144,18 @@ def test_script_edit_invalidates_existing_render(client):
     assert r.status_code==200
     assert client.get(f'/api/studio/jobs/{job_id}').json()['status']=='STALE'
     assert client.get(f'/api/qa/{item_id}').json()['report']['passed'] is False
+
+
+def test_one_click_local_production_for_image(client):
+    item_id=make_item(client,content_type='image')
+    r=client.post('/api/production/start')
+    assert r.status_code==202,r.text
+    run_id=r.json()['run_id']
+    for _ in range(100):
+        runs=client.get('/api/production/runs').json()
+        if runs and runs[0]['status'] not in ('QUEUED','RUNNING'):
+            break
+        time.sleep(.1)
+    assert runs[0]['status']=='FINISHED',runs
+    assert runs[0]['total']==1 and runs[0]['failed']==0
+    assert client.get('/api/production/summary').json()['local_only'] is True

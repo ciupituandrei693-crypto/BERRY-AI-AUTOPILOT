@@ -1,6 +1,6 @@
 # Validation — BERRY v1.0 RC
 
-- 20/20 Python tests passed on Linux (FastAPI, SQLite, SEO, QA, approvals, media rendering, calendar, exports, backup, origin/host security).
+- 21/21 Python tests passed on Linux (FastAPI, SQLite, SEO, QA, approvals, media rendering, calendar, exports, backup, origin/host security).
 - Node.js `node --check static/app.js` passed.
 - Python `compileall` passed.
 - FFmpeg motion graphics FULL 15 seconds produced a valid MP4 in a temporary test directory.

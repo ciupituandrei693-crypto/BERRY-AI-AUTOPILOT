@@ -118,6 +118,9 @@ async function loadScript(){const id=Number($('#studio-item').value);if(!id){$('
 $('#studio-item').onchange=loadScript;
 $('#studio-script-save').onclick=async()=>{const id=Number($('#studio-item').value);if(!id)return toast('Alege un material');try{await api(`/items/${id}/script`,'POST',{text:$('#studio-script').value});toast('Scenariu salvat. Randează din nou FULL.');await refreshStudio()}catch(e){toast(e.message)}};
 $('#studio-next').onclick=async()=>{try{const r=await api('/studio/render-next','POST');toast(r.job_id?`Randare FULL #${r.job_id} pornită`:'Nu există schițe de randat');await refreshStudio()}catch(e){toast(e.message)}};
-const priorGo=go;go=function(page){priorGo(page);if(page==='qa')refreshQA();if(page==='calendar')refreshCalendar();if(page==='studio')loadScript()};window.go=go;
+async function refreshProduction(){try{const runs=await api('/production/runs');$('#production-runs').innerHTML=runs.length?runs.map(r=>`<div class="studio-job"><div class="row-between"><strong>Lot #${r.id} · ${esc(r.status)}</strong><span>${r.completed}/${r.total} · eșuate: ${r.failed}</span></div>${['RUNNING','QUEUED'].includes(r.status)?`<button class="btn outline small" onclick="cancelProduction(${r.id})">Oprește după randarea curentă</button>`:''}</div>`).join(''):'<div class="empty">Nu există loturi de producție.</div>'}catch(e){toast(e.message)}}
+window.cancelProduction=async id=>{try{await api(`/production/${id}/cancel`,'POST');toast('Oprire solicitată');await refreshProduction()}catch(e){toast(e.message)}};
+$('#production-start').onclick=async()=>{if(!confirm('Pornim randarea FULL pentru maximum 30 schițe locale? Poate dura mult pe CPU.'))return;try{const r=await api('/production/start','POST');toast(`Lot #${r.run_id} pornit pentru ${r.total} fișe`);await refreshProduction()}catch(e){toast(e.message)}};
+const priorGo=go;go=function(page){priorGo(page);if(page==='qa')refreshQA();if(page==='calendar')refreshCalendar();if(page==='studio'){loadScript();refreshProduction()}};window.go=go;
 load();
 if('serviceWorker'  in navigator)navigator.serviceWorker.register('/static/sw.js').catch(()=>{});

@@ -11,6 +11,8 @@ from berry.app import app
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(db, 'DB', tmp_path / 'berry_test.sqlite3')
     monkeypatch.setenv('BERRY_OUTPUT_DIR', str(tmp_path / 'outputs'))
+    monkeypatch.setenv('BERRY_SCRIPT_DIR', str(tmp_path / 'scripts'))
+    monkeypatch.setenv('BERRY_ASSET_DIR', str(tmp_path / 'assets'))
     monkeypatch.setenv('BERRY_PREVIEW_MAX_SECONDS', '2')
     monkeypatch.delenv('BERRY_PIPER_MODEL', raising=False)
     with TestClient(app) as c:

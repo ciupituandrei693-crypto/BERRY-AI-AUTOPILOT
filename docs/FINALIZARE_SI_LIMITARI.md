@@ -8,7 +8,7 @@ Data: 2026-11-10. Fără conectare la servicii externe, fără costuri.
 - Media Studio cu editare scenariu, import imagine PNG/JPEG/WEBP (max 8 MB) și audio WAV/MP3 (max 25 MB), FFmpeg auto-disponibil prin `imageio-ffmpeg`, opțional Piper și Windows SAPI, fișiere de producție, montaj motion graphics FULL 15/90/300 sec, PNG, SRT, manifest.
 - QA cu drepturi și verificări umane, calendar local cu dată ISO și fus orar, verificare a amprentei QA, pachete ZIP pentru publicare **manuală**, backup SQLite.
 - PWA responsive, origine/host limitate, local-only, launcher Windows și script de build PyInstaller.
-- Teste automate (20/20) pe Linux, inclusiv randare FFmpeg 15 sec, QA, aprobare, programare, ZIP și backup. Buildul Windows nu a fost rulat aici.
+- Teste automate (21/21) pe Linux, inclusiv randare FFmpeg 15 sec, QA, aprobare, programare, ZIP și backup. Buildul Windows nu a fost rulat aici.
 
 ## Limitări tehnice și licențe
 

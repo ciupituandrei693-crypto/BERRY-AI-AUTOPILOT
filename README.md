@@ -2,7 +2,7 @@
 
 **Romanian documentation:** [README_RO.md](README_RO.md)
 
-A local-first FastAPI/SQLite/PWA editorial studio for five fruit-character channels. Includes content planning, SEO templates, optional local KoboldCpp, editable scripts, user art/audio uploads, FFmpeg motion-graphics videos, optional Piper or Windows SAPI speech, QA checks, manual batch approval, a local calendar, manual ZIP exports and SQLite backup.
+A local-first FastAPI/SQLite/PWA editorial studio for five fruit-character channels. Includes content planning, SEO templates, optional local KoboldCpp, editable scripts, user art/audio uploads, FFmpeg motion-graphics videos, optional Piper or Windows SAPI speech, QA checks, manual batch approval, a local calendar, manual ZIP exports, sequential local batch production (up to 30 items) and SQLite backup.
 
 ## One-click Windows launch
 
