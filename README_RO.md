@@ -43,3 +43,13 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 - **Diagnostic PC / Windows** în AI Local Engines, timp de randare măsurat în istoricul joburilor.
 - **Windows EXE**: scriptul de build verifică automat executabilul cu `--self-test` după compilare. Nu este un EXE deja compilat și testat pe PC-ul utilizatorului.
 - **Modelele AI nu sunt incluse și nu au fost benchmarkate pe hardware-ul utilizatorului**. Vezi `docs/LOCAL_3D_RIGGING_LIPSYNC_WINDOWS.md`.
+
+## Nou în v1.3 RC — integrare locală până la testele finale PC
+
+- Bridge opt-in pentru **LivePortrait, MuseTalk, LatentSync și Hunyuan3D**. Necesită instalarea motoarelor și checkpoints compatibile, separat; configurare în `tools/model_bridge.example.json` copiat în fișier local privat. Nu există instalare automată a weights.
+- **TESTE_FINALE_PC.cmd** rulează diagnostic FastAPI/SQLite, FFmpeg, Blender, verificare EXE dacă există și pytest; salvează raport JSON local cu PASS/FAIL/SKIP.
+- Dashboardul afișează ultimul raport de testare PC. Statusul READY al unui model înseamnă doar că fișierele configurate există, nu că inferența a reușit.
+- **Hunyuan3D nu produce rig automat**, doar mesh printr-un adaptor configurat separat. Animația procedurală Blender este independentă.
+- Arhivele încărcate în conversație nu au putut fi inspectate integral în mediul actual. CLI-urile trebuie verificate cu versiunile ZIP.
+- **Windows EXE, randarea reală și performanța GPU nu sunt încă validate pe PC-ul tău.** Instrucțiuni: `docs/LOCAL_FINAL_STAGES_1_TO_11.md`.
+- **Etapa 12 (server, GPU cloud, conturi sociale, publicare și plăți) rămâne dezactivată.**
