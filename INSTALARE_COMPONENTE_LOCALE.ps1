@@ -326,6 +326,12 @@ if (-not (Ask 'Continui cu instalarea locala?')) {
   Record 'ACE-Step runtime' 'MANUAL' 'Python 3.10 + PyTorch compatibil; verifica README upstream.'
   Record 'ComfyUI model/workflow' 'MANUAL' 'Alege checkpoint cu licenta potrivita si exporta un workflow API JSON.'
   Record 'VoiceStudio voice model' 'MANUAL' 'Instaleaza un model vocal prin managerul intern si verifica licenta.'
+  if (Ask 'Adaug si Chatterbox, HyperFrames, OpenClipper si Instagram Agent Skill (toate locale)?') {
+    & (Join-Path $Root 'tools/INSTALL_BERRY_MEDIA_ADDONS_WINDOWS.ps1') -ProjectRoot $Root
+    Record 'BERRY media addons' 'INSTALLER_RAN' 'Vezi media_addons_*.json pentru rezultate si limitari.'
+  } else {
+    Record 'BERRY media addons' 'SKIP' 'Componentele suplimentare au fost amanate.'
+  }
   Record 'PyInstaller EXE' 'MANUAL' 'Ruleaza BUILD_WINDOWS_EXE.cmd pe Windows, apoi TESTE_FINALE_PC.cmd.'
 }
 $report = [ordered]@{
