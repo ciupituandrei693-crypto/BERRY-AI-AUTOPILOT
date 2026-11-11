@@ -12,7 +12,7 @@ echo   OpenClipper-master.zip
 echo.
 if not exist "incoming" mkdir "incoming"
 set "BERRY_PYTHON="
-if exist ".venv\Scripts\python.exe" set "BERRY_PYTHON=%CD%\.venv\Scripts\python.exe"
+if exist ".venv\Scripts\python.exe" set BERRY_PYTHON="%CD%\.venv\Scripts\python.exe"
 if not defined BERRY_PYTHON (
  where py >nul 2>nul
  if not errorlevel 1 (
