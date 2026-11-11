@@ -346,3 +346,51 @@ def disconnect(provider: str, channel_id: str) -> dict:
                  {'provider': provider, 'channel_id': channel_id})
     return {'disconnected_locally': bool(cur.rowcount), 'remote_token_revoked': False,
             'note': 'Revoca separat accesul si din setarile contului platformei'}
+
+
+
+def youtube_channel_stats(channel_id: str) -> dict:
+    """Explicit read-only YouTube channel snapshot, never a background poll."""
+    if channel_id not in CHANNEL_IDS or not enabled():
+        raise OAuthError('Canal invalid sau OAuth dezactivat')
+    row = db.one_row('''SELECT account_id,token_cipher FROM social_accounts
+                        WHERE provider=? AND channel_id=?''', ('youtube', channel_id))
+    if not row:
+        raise OAuthError('Canalul YouTube nu este conectat')
+    try:
+        tokens = json.loads(_fernet().decrypt(row['token_cipher'].encode()))
+    except Exception as exc:
+        raise OAuthError('Tokenul local nu poate fi decriptat; reconecteaza contul') from exc
+    access = tokens.get('access_token', '')
+    refresh = tokens.get('refresh_token', '')
+    if refresh:
+        updated = _json_request(TOKEN_URL['youtube'], data={
+            'client_id': _client_id('youtube'), 'client_secret': _secret('youtube'),
+            'refresh_token': refresh, 'grant_type': 'refresh_token'})
+        access = updated.get('access_token', '')
+        if not access:
+            raise OAuthError('Reimprospatarea tokenului Google a esuat')
+        tokens.update(updated)
+        tokens['refresh_token'] = refresh
+        with db.connection() as con:
+            con.execute('UPDATE social_accounts SET token_cipher=? WHERE provider=? AND channel_id=?',
+                        (_encrypt(tokens), 'youtube', channel_id))
+    if not access:
+        raise OAuthError('Lipseste access_token; reconecteaza contul')
+    url = 'https://www.googleapis.com/youtube/v3/channels?' + urllib.parse.urlencode({
+        'part': 'snippet,statistics', 'id': row['account_id']})
+    payload = _json_request(url, bearer=access)
+    items = payload.get('items') or []
+    if not items or str(items[0].get('id')) != row['account_id']:
+        raise OAuthError('YouTube nu a confirmat canalul asociat')
+    stats = items[0].get('statistics') or {}
+    return {
+        'provider': 'youtube', 'channel_id': channel_id,
+        'youtube_channel_id': row['account_id'],
+        'display_name': str((items[0].get('snippet') or {}).get('title', ''))[:100],
+        'views_total': int(stats.get('viewCount', 0)),
+        'videos_total': int(stats.get('videoCount', 0)),
+        'subscribers': int(stats['subscriberCount']) if stats.get('subscriberCount') else None,
+        'live_snapshot': True, 'not_video_analytics': True,
+        'published_by_berry': False,
+    }
