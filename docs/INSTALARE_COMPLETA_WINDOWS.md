@@ -29,6 +29,10 @@ Acest instalator **nu a fost executat pe PC-ul utilizatorului**. Este un script 
 | Hunyuan3D-2 | Cloneaza sursa; optional weights mini; runtime separat | PyTorch/extensii, mesh GLB, rigging |
 | WanGP | Cloneaza sursa; poate porni installerul oficial scripts/install.bat | Modele si setari din UI, CUDA |
 | ACE-Step | Cloneaza sursa; optional weights; runtime Python separat | Compatibilitate versiune API, GPU, licente |
+| Chatterbox | Cloneaza resemble-ai/chatterbox si poate instala chatterbox-tts in Python 3.11 separat | Inferenta TTS, model, VRAM, licenta vocii; upstream nu mai ofera suport |
+| HyperFrames | Instaleaza Node.js 22+ si hyperframes@0.9.33 local cu npm | Randare MP4 si FFmpeg; doar CLI local gratuit, nu Studio Pro |
+| OpenClipper | Cloneaza sursa GrepCut/OpenClipper; ofera linkul oficial pentru installerul Windows | Instalare desktop manuala, modele locale si export; publicare dezactivata |
+| Instagram Agent Skill | Cloneaza Jakeschincariol/instagram-agent-skill ca referinta | Analiza si adaptarea template-urilor in managerul BERRY, fara executie si fara postare |
 
 **Semnificatia raportului:** `INSTALLED` = installerul/pip a reusit; `PRESENT` = fisierul/folderul detectat; `SOURCE_ONLY` = doar cod; `WEIGHTS_DOWNLOADED` = doar checkpoint; `DEPS_INSTALLED` = pachete Python instalate; `MANUAL` = interventie necesara; `SKIP` = omis; `FAILED` = eroare. **Niciunul nu garanteaza inferenta AI functionala.**
 
@@ -52,3 +56,14 @@ Acest instalator **nu a fost executat pe PC-ul utilizatorului**. Este un script 
 ## Daca apar erori
 
 Trimite raportul JSON `install_*.json` si, daca exista, `ai_runtimes_*.json`. Nu trimite chei API, tokenuri sau date personale. Vom repara fiecare motor in ordinea dependintelor, apoi rulam `TESTE_FINALE_PC.cmd`.
+
+## Completari din tabelul BERRY — AI FRUIT STUDIO
+
+Cele patru resurse suplimentare se instaleaza optional prin `tools/INSTALL_BERRY_MEDIA_ADDONS_WINDOWS.ps1` sau din `INSTALARE_TOATE_COMPONENTELE.cmd` (se solicita confirmare). Se genereaza un raport separat `media_addons_*.json`.
+
+- **[Chatterbox](https://github.com/resemble-ai/chatterbox)**: TTS alternativ in mediu Python separat. Repository-ul original este disponibil ca arhiva fara suport; nu se cloneaza voci reale fara permisiune.
+- **[HyperFrames](https://github.com/heygen-com/hyperframes)**: generare video determinista din HTML/CSS, animatii, titluri, subtitrari si elemente grafice; Node.js 22+ si FFmpeg. Folosim doar CLI local gratuit; functiile Pro/hosted sunt excluse.
+- **[OpenClipper](https://github.com/GrepCut/OpenClipper)**: aplicație Windows pentru selectie si reformatare Shorts/Reels; sursa este clonata, iar instalatorul desktop se obtine manual de la [pagina oficiala](https://grepcut.com/en/open-clipper). Are functionalitati de conectare si publicare, dar BERRY nu le activeaza.
+- **[Instagram Agent Skill](https://github.com/Jakeschincariol/instagram-agent-skill)**: 13 skill-uri pentru hook-uri, scenarii, descrieri, profil, calendar, analiza si reutilizarea continutului. Sursa este doar referinta pentru managerul BERRY; **nu ruleaza automat scripturi si nu publica**.
+
+**Important:** instalarea surselor nu echivaleaza cu integrarea lor functionala in pipeline-ul BERRY. Testele de randare, TTS si export Shorts se fac separat pe PC-ul Windows, dupa instalare. Niciun cont social, token, API extern sau serviciu platit nu este conectat.
