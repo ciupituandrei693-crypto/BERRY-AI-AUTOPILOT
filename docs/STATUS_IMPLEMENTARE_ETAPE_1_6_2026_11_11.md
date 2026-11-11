@@ -64,6 +64,12 @@
 6. Rulează `TESTE_FINALE_PC.cmd`. Raportul JSON se salvează în `%LOCALAPPDATA%\BERRY_AI_AUTOPILOT\reports`.
 7. **SKIP = NEVALIDAT, nu PASS.** Nu se poate declara finalizat un motor AI sau un cont social fără testul real corespunzător.
 
+## Testul automat AFINA 15 secunde
+
+`tools/smoke_afina.py` generează, într-o bază temporară separată, un material **FRUIT LAB / AFINA** de 15 secunde prin pipeline-ul local FFmpeg/motion graphics, verifică fișierul MP4 și manifestul, apoi șterge fișierele temporare. Nu atinge proiectele utilizatorului, nu publică și nu folosește cloud. **Nu generează automat o animație 3D AI** și nu înlocuiește testarea ComfyUI/WanGP/Blender/voice.
+
+`TESTE_FINALE_PC.cmd` include acest smoke test în validarea completă. Raportul distinge `PASS`, `FAIL` și `SKIP`; dacă lipsește FFmpeg, testul este `SKIP`, nu `PASS`.
+
 ## Ce nu se poate finaliza doar din repository
 
 - Model weights AI, compatibilitatea GPU/driverelor și randarea 3D de calitate fără teste hardware.
