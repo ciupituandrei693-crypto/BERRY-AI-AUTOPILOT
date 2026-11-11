@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth
+from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -186,6 +186,22 @@ def items(channel_id:str|None=None):
     rows=db.all_rows(sql+' ORDER BY id DESC',args)
     for r in rows: r['seo']=json.loads(r.pop('seo_json')) if r['seo_json'] else None
     return rows
+
+class InstagramAnalysisInput(BaseModel):
+    kind: Literal['hook', 'caption', 'beats']
+    text: str = Field(min_length=1, max_length=5000)
+    target_seconds: float = Field(default=15, ge=5, le=600)
+    keywords: str = Field(default='', max_length=200)
+
+
+@app.post('/api/seo/instagram/analyze', dependencies=[Depends(guarded)])
+def instagram_offline_analysis(data: InstagramAnalysisInput):
+    try:
+        return instagram_skill_tools.analyze(
+            data.kind, data.text, target=data.target_seconds, keywords=data.keywords)
+    except instagram_skill_tools.InstagramToolError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
 
 @app.post('/api/seo/preview',dependencies=[Depends(guarded)])
 def seo_preview(data:SeoInput):
