@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools, jarvis_api, hyperframes_bridge, social_oauth, social_routes
+from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools, jarvis_api, hyperframes_bridge, social_oauth, social_routes, openclipper_bridge
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -374,6 +374,19 @@ class RenderInput(BaseModel):
 
 class HyperframesStart(BaseModel):
     item_id: int = Field(gt=0)
+
+
+@app.get('/api/openclipper/status', dependencies=[Depends(guarded)])
+def openclipper_status():
+    return openclipper_bridge.status()
+
+
+@app.get('/api/openclipper/{kind}', dependencies=[Depends(guarded)])
+def openclipper_list(kind: Literal['list_projects', 'list_exports']):
+    try:
+        return openclipper_bridge.list_local(kind)
+    except openclipper_bridge.OpenClipperError as exc:
+        raise HTTPException(503, str(exc)) from exc
 
 
 @app.get('/api/studio/hyperframes/status', dependencies=[Depends(guarded)])
