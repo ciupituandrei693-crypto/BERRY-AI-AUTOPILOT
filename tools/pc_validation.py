@@ -121,11 +121,16 @@ def _hyperframes_benchmark(tmp: Path) -> dict:
     if not exe:
         return _step('HyperFrames MP4 2s', 'SKIP',
                      'Configureaza BERRY_HYPERFRAMES_BIN; ZIP-ul sursa nu este CLI instalat')
+    gsap = hf.local_gsap(exe)
+    if not gsap:
+        return _step('HyperFrames MP4 2s', 'FAIL',
+                     'GSAP local lipseste; CDN-ul este interzis')
     art = studio.STATIC / 'lab.webp'
     if not art.is_file():
         return _step('HyperFrames MP4 2s', 'FAIL', 'Imaginea AFINA lipseste')
     work = tmp / 'hyperframes-smoke'
     work.mkdir()
+    shutil.copyfile(gsap, work / 'gsap.min.js')
     composition = work / 'index.html'
     composition.write_text(hf._html({'title': 'AFINA testeaza HyperFrames',
                                       'topic': 'Test local 2 secunde', 'channel_id': 'lab'},
