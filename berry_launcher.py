@@ -28,6 +28,10 @@ def load_local_configuration() -> None:
         'BERRY_HYPERFRAMES_BIN', 'BERRY_OPENCLIPPER_ROOT',
         'BERRY_INSTAGRAM_SKILL_ROOT',
         'BERRY_GOOGLE_OAUTH_CLIENT_ID', 'BERRY_GOOGLE_OAUTH_CLIENT_SECRET_FILE',
+        'BERRY_JARVIS_API_KEY', 'BERRY_SOCIAL_OAUTH_ENABLED',
+        'BERRY_SOCIAL_REDIRECT_BASE', 'BERRY_TIKTOK_CLIENT_KEY',
+        'BERRY_TIKTOK_CLIENT_SECRET_FILE', 'BERRY_INSTAGRAM_APP_ID',
+        'BERRY_INSTAGRAM_APP_SECRET_FILE',
     }
     for raw in config.read_text(encoding='utf-8-sig').splitlines():
         line = raw.strip()
