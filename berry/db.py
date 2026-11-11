@@ -70,6 +70,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS daily_plans(day TEXT PRIMARY KEY,created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS spend_proposals(id INTEGER PRIMARY KEY AUTOINCREMENT,category TEXT NOT NULL,channel_id TEXT,amount REAL NOT NULL,note TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS audit_log(id INTEGER PRIMARY KEY AUTOINCREMENT,time TEXT NOT NULL,action TEXT NOT NULL,detail TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS youtube_channel_plans(fruit_channel_id TEXT PRIMARY KEY REFERENCES channels(id), youtube_channel_id TEXT UNIQUE, display_label TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL);
         ''')
         for c in CHANNELS: con.execute('INSERT OR IGNORE INTO channels VALUES(?,?,?,?,?,?)',c)
         for c in CHARACTERS: con.execute('INSERT OR IGNORE INTO characters VALUES(?,?,?,?,?)',c)
