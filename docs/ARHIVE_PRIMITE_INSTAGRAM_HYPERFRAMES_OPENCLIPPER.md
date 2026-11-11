@@ -10,7 +10,7 @@
 | [HyperFrames](https://github.com/heygen-com/hyperframes) | `hyperframes-main(2).zip` | `a216caa6a2c7260c5936adcb36895e7ddad2d80dafef3b4f439b52b816361db1` | 11603 | 333303558 B | Apache 2.0 |
 | [OpenClipper](https://github.com/GrepCut/OpenClipper) | `OpenClipper-master.zip` | `f9fb461401d34d9f6a20a7dedfdc66f7c7424872776ec735b8b6b303f09585ce` | 901 | 191172204 B | MIT |
 
-Verificările de arhivă au trecut. HyperFrames conține două **symlink-uri** către căi interne (`packages/cli/src/audio/scripts`, `packages/producer/tests/render-symlinked-assets/src/shared`). Importatorul nu le restaurează automat pentru a evita traversarea prin symlink; **un build complet din sursa importată poate necesita refacerea lor și verificare manuală**. Pentru CLI preferăm distribuția oficială npm, instalată separat, cu confirmare.
+Verificările de arhivă au trecut. **Licențele codului nu garantează drepturi comerciale pentru toate fonturile, modelele, vocile sau fișierele media incluse**; verifică separat licența fiecărui asset înainte de monetizare. HyperFrames conține două **symlink-uri** către căi interne (`packages/cli/src/audio/scripts`, `packages/producer/tests/render-symlinked-assets/src/shared`). Importatorul nu le restaurează automat pentru a evita traversarea prin symlink; **un build complet din sursa importată poate necesita refacerea lor și verificare manuală**. Pentru CLI preferăm distribuția oficială npm, instalată separat, cu confirmare.
 
 ## Integrarea efectivă BERRY
 
