@@ -27,6 +27,7 @@ def load_local_configuration() -> None:
         'BERRY_CHATTERBOX_ROOT', 'BERRY_CHATTERBOX_PYTHON',
         'BERRY_HYPERFRAMES_BIN', 'BERRY_OPENCLIPPER_ROOT',
         'BERRY_INSTAGRAM_SKILL_ROOT',
+        'BERRY_GOOGLE_OAUTH_CLIENT_ID', 'BERRY_GOOGLE_OAUTH_CLIENT_SECRET_FILE',
     }
     for raw in config.read_text(encoding='utf-8-sig').splitlines():
         line = raw.strip()
