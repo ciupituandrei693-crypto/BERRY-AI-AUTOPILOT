@@ -282,6 +282,19 @@ def _mux_imported_video(source: Path, outdir: Path, voice: Path | None, soundtra
     return dest
 
 
+def _verified_ai_video_flag(source_file: Path) -> bool:
+    """Concept HyperFrames MP4 must never be misrepresented as AI animation."""
+    if not source_file.is_file():
+        return False
+    try:
+        source = json.loads(source_file.read_text(encoding='utf-8'))
+        if source.get('engine') == 'HYPERFRAMES_LOCAL_CONCEPT':
+            return False
+        return bool(source.get('ai_3d') or source.get('ai_animated'))
+    except (OSError, ValueError, TypeError):
+        return False
+
+
 def _worker(job_id: int) -> None:
     with ENGINE_LOCK:
         try:
@@ -356,7 +369,8 @@ def _worker(job_id: int) -> None:
                 "voice_created": bool(voice), "music_supplied": music_supplied,
                 "art_source": ("COMFYUI_LOCAL" if (asset_root / f"item_{item['id']}_art_source.json").is_file() else "USER_SUPPLIED") if user_art.is_file() else "BUNDLED_CONCEPT",
                 "audio_source": "VOICE_AND_MUSIC" if voice and soundtrack else "VOICE" if voice else "MUSIC" if soundtrack else "SILENCE",
-                "ai_animated": bool((asset_root / f"item_{item['id']}_video_source.json").is_file() and generated_video.is_file()),
+                "ai_animated": bool(generated_video.is_file() and
+                    _verified_ai_video_flag(asset_root / f"item_{item['id']}_video_source.json")),
                 "music_generated": bool((asset_root / f"item_{item['id']}_music_source.json").is_file() and music_supplied),
                 "published": False, "qa_approved": False,
                 "status_note": ("Video MP4 local importat/generat; verifică proveniența și drepturile, NEPUBLICAT" if render_kind == "IMPORTED_OR_GENERATED_LOCAL_VIDEO"
