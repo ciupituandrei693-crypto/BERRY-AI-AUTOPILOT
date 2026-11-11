@@ -28,11 +28,11 @@ if not exist ".venv\Scripts\python.exe" (
   %BERRY_PYTHON% -m venv .venv
   if errorlevel 1 goto fail
 )
-if not exist ".venv\berry-ready-v12.flag" (
+if not exist ".venv\berry-ready-v14.flag" (
   echo [BERRY] Instalez dependentele gratuite - necesita internet doar prima data...
   ".venv\Scripts\python.exe" -m pip install -r requirements.txt
   if errorlevel 1 goto fail
-  echo ready>".venv\berry-ready-v12.flag"
+  echo ready>".venv\berry-ready-v14.flag"
 )
 echo.
 echo [BERRY] Pornesc aplicatia local la http://127.0.0.1:8765
