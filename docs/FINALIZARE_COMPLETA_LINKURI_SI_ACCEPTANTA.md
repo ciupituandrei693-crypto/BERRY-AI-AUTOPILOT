@@ -71,3 +71,8 @@ Nu există dovada unui test real de producție cinematică de 90 secunde pe hard
 1. Descarcă https://github.com/ciupituandrei693-crypto/BERRY-AI-AUTOPILOT/archive/refs/heads/main.zip
 2. Rulează `INSTALARE_TOATE_COMPONENTELE.cmd`, apoi `TESTE_FINALE_PC.cmd`.
 3. Trimite doar rapoartele de instalare/test (fără parole sau tokenuri). Pe baza lor se aleg motoarele care pot rula efectiv pe GPU-ul tău.
+
+
+## Actualizare implementare 11.11.2026
+
+Codul pentru JARVIS local, HyperFrames CLI, OpenClipper MCP read-only și OAuth opt-in numai citire este acum în repository. **Nu reprezintă confirmarea testelor Windows, publicării reale sau generării AI 3D**. Vezi [statusul exact pe cele șase etape](STATUS_IMPLEMENTARE_ETAPE_1_6_2026_11_11.md).
