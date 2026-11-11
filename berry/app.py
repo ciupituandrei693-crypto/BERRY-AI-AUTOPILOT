@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools, jarvis_api
+from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools, jarvis_api, hyperframes_bridge
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -35,6 +35,7 @@ async def lifespan(app:FastAPI):
     creative.init()
     analytics.init()
     jarvis_api.init()
+    hyperframes_bridge.init()
     yield
 
 app=FastAPI(title='BERRY AI — LOCAL',version='1.3.0-rc1',lifespan=lifespan)
@@ -367,6 +368,46 @@ def export_csv():
 class RenderInput(BaseModel):
     item_id: int = Field(gt=0)
     mode: Literal['preview','full'] = 'preview'
+
+class HyperframesStart(BaseModel):
+    item_id: int = Field(gt=0)
+
+
+@app.get('/api/studio/hyperframes/status', dependencies=[Depends(guarded)])
+def hyperframes_status():
+    return hyperframes_bridge.status()
+
+
+@app.get('/api/studio/hyperframes/jobs', dependencies=[Depends(guarded)])
+def hyperframes_jobs():
+    return hyperframes_bridge.jobs()
+
+
+@app.get('/api/studio/hyperframes/jobs/{job_id}', dependencies=[Depends(guarded)])
+def hyperframes_job(job_id: int):
+    result = hyperframes_bridge._job(job_id)
+    if not result:
+        raise HTTPException(404, 'Job HyperFrames inexistent')
+    return result
+
+
+@app.get('/api/studio/hyperframes/jobs/{job_id}/video', dependencies=[Depends(guarded)])
+def hyperframes_video(job_id: int):
+    path = hyperframes_bridge.output_file(job_id)
+    if not path:
+        raise HTTPException(404, 'Video indisponibil')
+    return FileResponse(path, media_type='video/mp4', filename='berry-hyperframes-concept.mp4')
+
+
+@app.post('/api/studio/hyperframes/render', status_code=202, dependencies=[Depends(guarded)])
+def hyperframes_render(data: HyperframesStart):
+    try:
+        return hyperframes_bridge.start(data.item_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
 
 @app.get('/api/studio/capabilities', dependencies=[Depends(guarded)])
 def studio_capabilities():
