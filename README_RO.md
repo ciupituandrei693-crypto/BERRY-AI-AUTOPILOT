@@ -1,4 +1,4 @@
-# 🍓 BERRY AI AUTOPILOT v1.3 RC — studio local Windows
+# 🍓 BERRY AI AUTOPILOT v1.4 RC — studio local Windows
 
 **BERRY funcționează local** pentru cinci canale de personaje-fructe. Această versiune adaugă adaptoare reale pentru motoare AI locale, dar **nu conține weights, nu garantează randare AI 3D/video și nu publică online**. Conectarea la server extern și GPU cloud rămâne ultima etapă, numai cu aprobare.
 
@@ -77,3 +77,16 @@ Au fost primite și verificate cele trei ZIP-uri: `instagram-agent-skill-main(2)
 **Import local fără re-descărcare:** copiază ZIP-urile originale în `incoming/` și execută `IMPORT_ARHIVE_PRIMITE.cmd`. Importatorul verifică SHA256, CRC, căi nesigure și symlink-uri, nu suprascrie surse existente și nu execută cod terț. În SEO Studio, instrumentele `hookscore.py`, `caption.py` și `beats.py` din arhiva Instagram pot fi apelate local după import, cu SHA256 individual verificat. Scorurile originale sunt predominant pentru engleză și orientative în română.
 
 **HyperFrames și OpenClipper nu sunt încă randate/instalate funcțional pe PC-ul utilizatorului.** Pentru HyperFrames folosim CLI-ul oficial npm separat; OpenClipper necesită aplicația desktop Tauri sau build Windows. Conturile sociale și cloud rămân dezactivate.
+
+## Actualizare v1.4 RC — JARVIS, HyperFrames, OpenClipper, OAuth opțional
+
+[**Stadiul exact al celor 6 etape, cu teste și limitări**](docs/STATUS_IMPLEMENTARE_ETAPE_1_6_2026_11_11.md).
+
+- **JARVIS ONE ULTIMATE**: API local `/api/v1/jarvis` cu cheie separată, creare draft, randare, QA și cereri de review; nu poate aproba sau publica.
+- **HyperFrames**: adaptor CLI local cu GSAP local obligatoriu, generare HTML sigur, job MP4 și descărcare. Este un video-concept, nu animație AI 3D.
+- **OpenClipper**: citire proiecte și exporturi prin MCP local `127.0.0.1:12742`, când aplicația desktop este pornită; fără modificare sau publicare.
+- **OAuth YouTube/TikTok/Instagram**: cod opt-in pentru conectare cu permisiuni de citire/profil, state unic și tokenuri criptate local. Implicit este **dezactivat**; necesită aplicații de dezvoltator, chei și autorizarea ta. TikTok/Instagram necesită callback HTTPS aprobat.
+- **YouTube statistici**: interogare agregată doar la cerere după conectare; analytics CSV și calendarul local rămân disponibile fără OAuth.
+- **Windows**: `LAUNCH_BERRY.cmd`, `BUILD_WINDOWS_EXE.cmd` și `TESTE_FINALE_PC.cmd` actualizate; raportul testează inclusiv HyperFrames MP4 și OpenClipper MCP dacă sunt configurate.
+
+**Nu declara aplicația finalizată operațional până când nu trec testele reale pe Windows.** Nu au fost activate conturi, publicare, server extern sau GPU cloud.
