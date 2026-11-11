@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import db
 from .seo import draft
 from .local_ai import generate_text, LocalAIError
-from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools
+from . import studio, workflow, production, engines, creative, analytics, diagnostics, youtube_oauth, instagram_skill_tools, jarvis_api
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT/'static'
@@ -34,10 +34,12 @@ async def lifespan(app:FastAPI):
     production.init()
     creative.init()
     analytics.init()
+    jarvis_api.init()
     yield
 
 app=FastAPI(title='BERRY AI — LOCAL',version='1.3.0-rc1',lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
+app.include_router(jarvis_api.router)
 
 @app.middleware('http')
 async def security_headers(request:Request,call_next):
