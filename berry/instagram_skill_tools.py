@@ -68,7 +68,9 @@ def analyze(kind: str, text: str, *, target: float = 15.0, keywords: str = '') -
                              cwd=str(script.parent), env=env, timeout=8, check=False)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise InstagramToolError('Instrumentul local nu a putut rula') from exc
-    if run.returncode != 0 or len(run.stdout) > 100_000:
+    # caption.py returns 1 for a normal WARN/FIX verdict even with valid JSON.
+    accepted = (0, 1) if kind == 'caption' else (0,)
+    if run.returncode not in accepted or len(run.stdout) > 100_000:
         raise InstagramToolError('Analiza locala a esuat sau a depasit limita')
     try:
         result = json.loads(run.stdout)
