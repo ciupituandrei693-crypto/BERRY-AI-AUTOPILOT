@@ -4,3 +4,6 @@ pydantic>=2,<3
 pillow>=10,<13
 python-multipart>=0.0.9,<1
 imageio-ffmpeg>=0.5,<1
+
+# Encrypted local OAuth tokens (never committed)
+cryptography>=43,<47
