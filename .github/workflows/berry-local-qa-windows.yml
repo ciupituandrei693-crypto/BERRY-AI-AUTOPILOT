@@ -87,7 +87,7 @@ jobs:
       - name: Bundle portable launcher and README
         shell: pwsh
         run: |
-          Copy-Item LAUNCH_BERRY.cmd dist\BERRY_AI_AUTOPILOT\
+          Copy-Item START_BERRY_PORTABLE.cmd dist\BERRY_AI_AUTOPILOT\
           Copy-Item README_RO.md dist\BERRY_AI_AUTOPILOT\
           Copy-Item .env.example dist\BERRY_AI_AUTOPILOT\
           Compress-Archive -Path dist\BERRY_AI_AUTOPILOT -DestinationPath dist\BERRY_AI_AUTOPILOT_WINDOWS_PORTABLE.zip -Force
