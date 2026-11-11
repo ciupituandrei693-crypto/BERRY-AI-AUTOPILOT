@@ -61,6 +61,14 @@ def callback(provider: Literal['youtube', 'tiktok', 'instagram'],
     return RedirectResponse('/?oauth=connected', status_code=303)
 
 
+@router.post('/youtube/channel-stats', dependencies=[Depends(require_access)])
+def youtube_stats(data: LinkRequest):
+    try:
+        return social_oauth.youtube_channel_stats(data.channel_id)
+    except social_oauth.OAuthError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
 @router.post('/{provider}/disconnect', dependencies=[Depends(require_access)])
 def disconnect(provider: Literal['youtube', 'tiktok', 'instagram'], data: LinkRequest):
     try:
