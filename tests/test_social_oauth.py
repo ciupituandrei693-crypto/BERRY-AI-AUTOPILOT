@@ -102,6 +102,7 @@ def test_tiktok_instagram_require_approved_https_redirect(client, monkeypatch):
         assert r.status_code == 409
         assert 'HTTPS' in r.json()['detail']
     monkeypatch.setenv('BERRY_SOCIAL_REDIRECT_BASE', 'https://oauth.example.com')
+    assert social_oauth._redirect('youtube') == 'http://localhost:8765/api/social/youtube/callback'
     for p in ('tiktok', 'instagram'):
         result = client.post(f'/api/social/{p}/start', headers=headers(), json={'channel_id': 'lab'})
         assert result.status_code == 200, result.text
