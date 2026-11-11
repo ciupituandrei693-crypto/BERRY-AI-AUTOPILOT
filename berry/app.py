@@ -39,7 +39,7 @@ async def lifespan(app:FastAPI):
     social_oauth.init()
     yield
 
-app=FastAPI(title='BERRY AI — LOCAL',version='1.3.0-rc1',lifespan=lifespan)
+app=FastAPI(title='BERRY AI — LOCAL',version='1.4.0-rc1',lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'])
 app.include_router(jarvis_api.router)
 app.include_router(social_routes.router)
