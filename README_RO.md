@@ -61,3 +61,7 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 **Nu inseamna ca toate motoarele vor rula automat.** Modelele AI mari pot necesita alte checkpoints, CUDA, drivere, Conda, licente si configurari specifice. Pe placi AMD mai vechi sau NVIDIA cu VRAM insuficient, unele modele sunt omise in mod intentionat. LatentSync 1.6 cere cel putin 18 GB VRAM conform autorilor. Scriptul cere confirmare inaintea descarcarilor mari si salveaza un raport `install_*.json` in `%LOCALAPPDATA%\BERRY_AI_AUTOPILOT\reports`.
 
 **Instalarea nu a fost executata pe PC-ul utilizatorului.** Pentru explicatii, limitari si verificare vezi [ghidul complet](docs/INSTALARE_COMPLETA_WINDOWS.md). Dupa instalare ruleaza `TESTE_FINALE_PC.cmd` si trimite raportul. Etapa 12 (cloud/server/OAuth/publicare/plati) ramane dezactivata.
+
+## Componente noi din lista AI FRUIT STUDIO
+
+Instalatorul asistat poate pregati suplimentar **Chatterbox** (TTS separat), **HyperFrames** (video HTML/CSS local), **OpenClipper** (sursa Windows si instalator desktop manual) si **Instagram Agent Skill** (biblioteca de idei, hook-uri, descrieri si planificare, fara postare automata). La final apare raportul `media_addons_*.json` in `%LOCALAPPDATA%\BERRY_AI_AUTOPILOT\reports`. Codul si pachetele instalate nu garanteaza functionarea motoarelor; sunt necesare teste reale Windows. Vezi [documentatia](docs/INSTALARE_COMPLETA_WINDOWS.md).
