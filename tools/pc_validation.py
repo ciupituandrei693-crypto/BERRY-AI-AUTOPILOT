@@ -115,6 +115,75 @@ def _blender_benchmark(tmp: Path) -> dict:
                  if passed else ("Verifică Blender/driverul video: " + message[:220]), seconds)
 
 
+def _hyperframes_benchmark(tmp: Path) -> dict:
+    from berry import hyperframes_bridge as hf, studio
+    exe = hf.cli()
+    if not exe:
+        return _step('HyperFrames MP4 2s', 'SKIP',
+                     'Configureaza BERRY_HYPERFRAMES_BIN; ZIP-ul sursa nu este CLI instalat')
+    art = studio.STATIC / 'lab.webp'
+    if not art.is_file():
+        return _step('HyperFrames MP4 2s', 'FAIL', 'Imaginea AFINA lipseste')
+    work = tmp / 'hyperframes-smoke'
+    work.mkdir()
+    composition = work / 'index.html'
+    composition.write_text(hf._html({'title': 'AFINA testeaza HyperFrames',
+                                      'topic': 'Test local 2 secunde', 'channel_id': 'lab'},
+                                     2, art), encoding='utf-8')
+    output = work / 'smoke.mp4'
+    args = [exe, 'render', '-c', str(composition), '-o', str(output), '--fps', '12']
+    if Path(exe).suffix.lower() in ('.js', '.mjs'):
+        node = shutil.which('node')
+        if not node:
+            return _step('HyperFrames MP4 2s', 'FAIL', 'Node.js lipseste')
+        args.insert(0, node)
+    code, seconds, message = _run(args, 240, work)
+    ok = code == 0 and output.is_file() and output.stat().st_size > 1024
+    return _step('HyperFrames MP4 2s', 'PASS' if ok else 'FAIL',
+                 'Compozitie HTML offline randata real in MP4' if ok
+                 else 'Render local nereusit: ' + message[:180], seconds)
+
+
+def _openclipper_benchmark() -> dict:
+    from berry import openclipper_bridge as oc
+    status = oc.status()
+    if not status['online']:
+        return _step('OpenClipper MCP local', 'SKIP',
+                     'Aplicatia OpenClipper desktop nu ruleaza sau MCP nu este pornit')
+    started = time.monotonic()
+    try:
+        result = oc.list_local('list_projects')
+        ok = result['read_only'] and result['source'] == 'OPENCLIPPER_LOCAL_MCP'
+        return _step('OpenClipper MCP local', 'PASS' if ok else 'FAIL',
+                     'Listare proiecte prin MCP fara modificari',
+                     time.monotonic() - started)
+    except oc.OpenClipperError as exc:
+        return _step('OpenClipper MCP local', 'FAIL', str(exc)[:180],
+                     time.monotonic() - started)
+
+
+def _jarvis_smoke(tmp: Path) -> dict:
+    key = os.getenv('BERRY_JARVIS_API_KEY', '')
+    if len(key) < 32:
+        return _step('JARVIS ONE API local', 'SKIP',
+                     'Configureaza BERRY_JARVIS_API_KEY de minimum 32 caractere')
+    from fastapi.testclient import TestClient
+    from berry import db
+    from berry.app import app
+    old = db.DB
+    db.DB = tmp / 'jarvis-smoke.sqlite3'
+    try:
+        with TestClient(app) as client:
+            r = client.get('/api/v1/jarvis/capabilities', headers={'X-JARVIS-KEY': key})
+            ok = r.status_code == 200 and r.json()['social_publishing'] is False
+        return _step('JARVIS ONE API local', 'PASS' if ok else 'FAIL',
+                     'Cheie separata validata, publicarea blocata')
+    except Exception as exc:
+        return _step('JARVIS ONE API local', 'FAIL', type(exc).__name__)
+    finally:
+        db.DB = old
+
+
 def _exe_smoke() -> dict:
     exe = ROOT / "dist" / "BERRY_AI_AUTOPILOT" / "BERRY_AI_AUTOPILOT.exe"
     if os.name != "nt":
@@ -176,6 +245,13 @@ def validate(full: bool = False, tests: bool = False) -> dict:
         else:
             report["steps"].append(_step("Blender 3D 2s 180px", "SKIP",
                                           "Rulează cu --full pentru benchmark real"))
+        if full:
+            report["steps"].append(_hyperframes_benchmark(tmp))
+            report["steps"].append(_openclipper_benchmark())
+        else:
+            report["steps"].append(_step('HyperFrames MP4 2s', 'SKIP', 'Ruleaza cu --full'))
+            report["steps"].append(_step('OpenClipper MCP local', 'SKIP', 'Ruleaza cu --full'))
+        report["steps"].append(_jarvis_smoke(tmp))
         report["steps"].append(_exe_smoke())
         if tests:
             report["steps"].append(_pytest())
