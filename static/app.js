@@ -197,3 +197,25 @@ $('#youtube-oauth-channels').addEventListener('click',async e=>{
 });
 const priorGoYoutube=go;
 go=function(page){priorGoYoutube(page);if(page==='integrations')refreshYoutubePlan()};window.go=go;
+
+
+// Explicit local Instagram Agent Skill analysis. No social login or publishing.
+const igToolsForm=$('#ig-tools-form');
+if(igToolsForm){
+ igToolsForm.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const result=$('#ig-tools-result');
+  const kind=$('#ig-tools-kind').value;
+  const text=$('#ig-tools-text').value.trim();
+  const max=kind==='hook'?240:kind==='caption'?2200:5000;
+  if(!text||text.length>max){result.textContent='Textul trebuie să aibă între 1 și '+max+' caractere.';return;}
+  result.textContent='Verificare locală în curs...';
+  try{
+   const answer=await api('/seo/instagram/analyze','POST',{
+    kind,text,target_seconds:Number($('#ig-tools-target').value||15),keywords:''
+   });
+   result.textContent=JSON.stringify(answer.result,null,2)+'\n\n'+answer.language_note+
+    '\nFără conectare Instagram · fără publicare · verificare umană obligatorie.';
+  }catch(err){result.textContent='Instrument indisponibil: '+err.message;}
+ });
+}
