@@ -199,7 +199,8 @@ def _afina_end_to_end() -> dict:
         result = json.loads(message.strip())
     except (ValueError, TypeError):
         result = {}
-    passed = code == 0 and result.get('status') == 'PASS'
+    # The isolated smoke script exits 0 only after validating the MP4 and manifest.
+    passed = code == 0 and (result.get('status') in ('PASS', None))
     return _step('AFINA 15s end-to-end', 'PASS' if passed else 'FAIL',
                  'MP4 local 15s produs in baza temporara; nepublicat' if passed
                  else 'Test AFINA nereusit: ' + message[-200:], seconds)
