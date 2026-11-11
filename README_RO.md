@@ -90,3 +90,12 @@ Au fost primite și verificate cele trei ZIP-uri: `instagram-agent-skill-main(2)
 - **Windows**: `LAUNCH_BERRY.cmd`, `BUILD_WINDOWS_EXE.cmd` și `TESTE_FINALE_PC.cmd` actualizate; raportul testează inclusiv HyperFrames MP4 și OpenClipper MCP dacă sunt configurate. Testul complet include și un **AFINA 15 secunde** end-to-end local, într-o bază temporară.
 
 **Nu declara aplicația finalizată operațional până când nu trec testele reale pe Windows.** Nu au fost activate conturi, publicare, server extern sau GPU cloud.
+
+## Build Windows verificat în GitHub Actions — 11.11.2026
+
+- Workflow: [BERRY Local QA + Windows EXE](https://github.com/ciupituandrei693-crypto/BERRY-AI-AUTOPILOT/actions/workflows/berry-local-qa-windows.yml).
+- Teste confirmate la execuția 43037820513: **80 passed, 1 skipped pe Linux; 80 passed, 1 skipped pe Windows**, plus test AFINA 15 secunde motion graphics.
+- PyInstaller a construit executabilul Windows, iar `--self-test` a trecut după corectarea ieșirii Unicode a consolei.
+- Arhiva portabilă include `START_BERRY_PORTABLE.cmd` (lansare directă EXE, fără Python) și `BERRY_AI_AUTOPILOT.exe`. Este necesară extragerea întregului folder.
+- CI validează funcționarea de bază pe un runner Windows, **nu hardware-ul utilizatorului**. Blender, modelele AI 3D, HyperFrames/OpenClipper reale, conturile sociale și publicarea nu sunt testate în CI.
+- [Predare locală către JARVIS fără server extern](docs/PREDARE_LOCALA_CATRE_JARVIS_FARA_SERVER_EXTERN.md).
