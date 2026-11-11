@@ -30,6 +30,27 @@ def cli() -> str | None:
     return str(p.resolve()) if p.is_file() and p.suffix.lower() in ('.cmd', '.exe', '.js', '.mjs') else None
 
 
+def local_gsap(executable: str | None = None) -> Path | None:
+    """Require a local GSAP file; NEVER fetch jsDelivr during rendering."""
+    override = os.getenv('BERRY_HYPERFRAMES_GSAP_PATH', '').strip()
+    if override:
+        p = Path(override).expanduser().resolve()
+        return p if p.is_file() and p.name == 'gsap.min.js' else None
+    if not executable:
+        return None
+    exe = Path(executable).resolve()
+    bases = [exe.parent, *list(exe.parents)[:3]]
+    for base in bases:
+        candidates = [
+            base / 'hyperframes' / 'dist' / 'vendor' / 'npm' / 'gsap@3.14.2' / 'dist' / 'gsap.min.js',
+            base / 'dist' / 'vendor' / 'npm' / 'gsap@3.14.2' / 'dist' / 'gsap.min.js',
+        ]
+        for p in candidates:
+            if p.is_file():
+                return p
+    return None
+
+
 def init() -> None:
     with db.connection() as con:
         con.execute('''CREATE TABLE IF NOT EXISTS hyperframes_jobs(
@@ -47,9 +68,11 @@ def init() -> None:
 
 def status() -> dict:
     executable = cli()
+    gsap = local_gsap(executable)
     return {'source': 'USER_UPLOADED_HYPERFRAMES_ZIP',
             'cli_configured': bool(executable),
-            'ready_for_local_render': bool(executable),
+            'local_gsap_configured': bool(gsap),
+            'ready_for_local_render': bool(executable and gsap),
             'render_tested_here': False,
             'external_publishing_enabled': False,
             'requires': ['Node.js 22+', 'HyperFrames CLI', 'FFmpeg', 'Chromium local'],
@@ -73,6 +96,8 @@ def start(item_id: int) -> dict:
     executable = cli()
     if not executable:
         raise ValueError('Configureaza BERRY_HYPERFRAMES_BIN cu CLI-ul local instalat')
+    if not local_gsap(executable):
+        raise ValueError('Lipseste GSAP local. Configureaza BERRY_HYPERFRAMES_GSAP_PATH; fara CDN')
     item = db.one_row('SELECT * FROM items WHERE id=?', (item_id,))
     if not item:
         raise LookupError('Materialul nu exista')
@@ -112,6 +137,7 @@ def _html(item: dict, duration: int, art: Path) -> str:
 <html lang="ro"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=360, height=640">
 <title>BERRY LOCAL</title>
+<script src="gsap.min.js"></script>
 <style>
 *{{box-sizing:border-box}}html,body{{margin:0;width:360px;height:640px;overflow:hidden;
 background:#0b0b1c;color:white;font-family:Arial,Helvetica,sans-serif}}
@@ -133,6 +159,14 @@ text-align:center;color:#dfd8ee}}
 <img alt="" src="data:{mime};base64,{encoded}">
 <div class="title">{title}</div><div class="topic">{topic}</div>
 <div class="footer">LOCAL CONCEPT · REVIEW REQUIRED</div></div>
+<script>
+window.__timelines = window.__timelines || {{}};
+const tl = gsap.timeline({{paused:true}});
+tl.fromTo('.title', {{opacity:0, y:25}}, {{opacity:1, y:0, duration:0.9}}, 0);
+tl.fromTo('.topic', {{opacity:0}}, {{opacity:1, duration:0.7}}, 0.6);
+tl.fromTo('img', {{scale:0.94}}, {{scale:1.02, duration:{duration}, ease:'none'}}, 0);
+window.__timelines['main'] = tl;
+</script>
 </body></html>'''
 
 
@@ -159,6 +193,10 @@ def _worker(job_id: int, executable: str) -> None:
             art = uploaded if uploaded.is_file() else studio.STATIC / CHANNEL_ART[item['channel_id']]
             if not art.is_file():
                 raise ValueError('Lipseste imaginea personajului')
+            gsap = local_gsap(executable)
+            if not gsap:
+                raise ValueError('GSAP local indisponibil; randarea fara internet este blocata')
+            shutil.copyfile(gsap, work / 'gsap.min.js')
             composition = work / 'index.html'
             composition.write_text(_html(item, job['duration_seconds'], art), encoding='utf-8')
             output = work / 'hyperframes-concept.mp4'
