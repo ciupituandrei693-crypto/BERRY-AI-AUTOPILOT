@@ -162,3 +162,38 @@ const priorGoAI=go;go=function(page){priorGoAI(page);if(page==='ai-local')refres
 
 // Diagnostic only: no AI generation, downloads or network requests outside localhost.
 if(document.querySelector("#local-diagnostics")){document.querySelector("#local-diagnostics").onclick=async()=>{const out=document.querySelector("#local-diagnostics-report");out.textContent="Se verifică sistemul local...";try{const response=await fetch("/api/local/diagnostics");if(!response.ok)throw Error("HTTP "+response.status);out.textContent=JSON.stringify(await response.json(),null,2)}catch(e){out.textContent="Diagnostic indisponibil: "+String(e.message)}};}
+
+
+// YouTube Google OAuth: local planning only. No Google redirect or token exchange.
+let youtubePlan=null;
+async function refreshYoutubePlan(){
+ const status=$('#youtube-oauth-status'),list=$('#youtube-oauth-channels');
+ if(!status||!list)return;
+ try{
+  const data=await api('/integrations/youtube/plan');youtubePlan=data;
+  status.textContent='Stare: '+data.mode+' · '+data.planned_count+'/5 asocieri planificate · '+data.connected_count+'/5 conectate · client Google configurat: '+(data.client_id_staged?'da':'nu')+' · fișier secret configurat: '+(data.client_secret_file_staged?'da':'nu')+' · publicare: DEZACTIVATĂ';
+  list.innerHTML=data.channels.map(ch=>'<div class="item-row"><div class="item-main"><strong>'+esc(ch.fruit_name)+'</strong><small>'+esc(ch.display_label||'Nume YouTube necompletat')+' · '+esc(ch.youtube_channel_id||'ID YouTube necompletat')+'</small><small>'+(ch.planned?'Asociere locală, neverificată':'Neplanificat')+' · OAuth neconectat</small></div>'+(ch.planned?'<button class="btn small outline youtube-plan-remove" data-fruit="'+esc(ch.fruit_channel_id)+'" type="button">Șterge planul</button>':'')+'</div>').join('');
+  const selected=data.channels.find(x=>x.fruit_channel_id===$('#youtube-plan-fruit').value);
+  if(selected){$('#youtube-plan-label').value=selected.display_label||'';$('#youtube-plan-id').value=selected.youtube_channel_id||'';}
+ }catch(e){status.textContent='Nu am putut încărca planul YouTube: '+e.message;}
+}
+$('#youtube-plan-refresh').onclick=refreshYoutubePlan;
+$('#youtube-plan-fruit').onchange=()=>{
+ const selected=youtubePlan?.channels?.find(x=>x.fruit_channel_id===$('#youtube-plan-fruit').value);
+ $('#youtube-plan-label').value=selected?.display_label||'';
+ $('#youtube-plan-id').value=selected?.youtube_channel_id||'';
+};
+$('#youtube-plan-form').onsubmit=async e=>{
+ e.preventDefault();
+ const body={fruit_channel_id:$('#youtube-plan-fruit').value,
+             display_label:$('#youtube-plan-label').value.trim(),
+             youtube_channel_id:$('#youtube-plan-id').value.trim()||null};
+ try{await api('/integrations/youtube/channel-plan','POST',body);toast('Asociere locală salvată. Canalul NU este conectat.');await refreshYoutubePlan();}catch(err){toast(err.message)}
+};
+$('#youtube-oauth-channels').addEventListener('click',async e=>{
+ const btn=e.target.closest('.youtube-plan-remove');if(!btn)return;
+ if(!confirm('Ștergi doar asocierea locală, fără modificări în YouTube?'))return;
+ try{await api('/integrations/youtube/channel-plan/'+encodeURIComponent(btn.dataset.fruit),'DELETE');toast('Plan local șters');await refreshYoutubePlan();}catch(err){toast(err.message)}
+});
+const priorGoYoutube=go;
+go=function(page){priorGoYoutube(page);if(page==='integrations')refreshYoutubePlan()};window.go=go;
