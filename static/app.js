@@ -219,3 +219,112 @@ if(igToolsForm){
   }catch(err){result.textContent='Instrument indisponibil: '+err.message;}
  });
 }
+
+
+// HyperFrames CLI: user-triggered local render of a BERRY-generated composition.
+async function refreshHyperFrames(){
+ const status=$('#hf-status'),jobs=$('#hf-jobs');
+ if(!status||!jobs)return;
+ try{
+  const [cap,list]=await Promise.all([api('/studio/hyperframes/status'),api('/studio/hyperframes/jobs')]);
+  status.textContent=cap.cli_configured?'CLI configurat · render local':'CLI indisponibil · configurează BERRY_HYPERFRAMES_BIN';
+  jobs.replaceChildren();
+  if(!list.length){jobs.textContent='Nu există randări HyperFrames.';return;}
+  for(const job of list){
+   const row=document.createElement('div');row.className='item-row';
+   const info=document.createElement('div');info.className='item-main';
+   info.textContent='Job #'+job.id+' · Material #'+job.item_id+' · '+job.status+
+    ' · '+job.duration_seconds+'s'+(job.error?' · '+job.error:'');
+   row.append(info);
+   if(job.video_ready){
+    const btn=document.createElement('button');btn.className='btn small outline';
+    btn.textContent='Descarcă MP4';
+    btn.onclick=async()=>{
+     try{
+      const resp=await fetch('/api/studio/hyperframes/jobs/'+job.id+'/video',
+       {headers:key()?{'X-BERRY-KEY':key()}:{}});
+      if(!resp.ok)throw Error('HTTP '+resp.status);
+      const blob=await resp.blob(),url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='berry-hyperframes-'+job.id+'.mp4';
+      a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+     }catch(err){toast('Descărcarea a eșuat: '+err.message);}
+    };
+    row.append(btn);
+   }
+   jobs.append(row);
+  }
+ }catch(err){status.textContent='HyperFrames: '+err.message;}
+}
+if($('#hf-refresh'))$('#hf-refresh').onclick=refreshHyperFrames;
+if($('#hf-render'))$('#hf-render').onclick=async()=>{
+ const id=Number($('#studio-item')?.value);
+ if(!id){toast('Selectează întâi un material DRAFT în Media Studio.');return;}
+ if(!confirm('Randezi local un MP4-concept pentru acest material? Nu este animație AI 3D și nu se publică.'))return;
+ try{
+  const result=await api('/studio/hyperframes/render','POST',{item_id:id});
+  toast('HyperFrames: job #'+result.id+' adăugat.');
+  await refreshHyperFrames();
+ }catch(err){toast('HyperFrames: '+err.message);}
+};
+const previousGoHF=go;
+go=function(page){previousGoHF(page);if(page==='studio')refreshHyperFrames()};window.go=go;
+
+// Optional social OAuth, explicitly activated by the user; only profile/read scopes.
+async function refreshSocialAccounts(){
+ const target=$('#social-status');
+ if(!target)return;
+ target.replaceChildren();
+ try{
+  const data=await api('/social/status');
+  const note=document.createElement('p');note.className='muted small';
+  note.textContent='OAuth: '+(data.enabled?'ACTIVAT EXPLICIT':'DEZACTIVAT')+
+    ' · publicare: DEZACTIVATĂ · permisiuni de upload: NU';
+  target.append(note);
+  for(const [name,provider] of Object.entries(data.providers)){
+   const row=document.createElement('div');row.className='item-row';
+   const info=document.createElement('div');info.className='item-main';
+   info.textContent=name.toUpperCase()+' · '+(provider.configured?'chei configurate':'chei lipsă')+
+    ' · '+(provider.redirect_ready?'callback pregătit':'callback HTTPS necesar')+
+    ' · conturi: '+provider.connected.length;
+   row.append(info);target.append(row);
+   for(const account of provider.connected){
+    const entry=document.createElement('div');entry.className='item-row';
+    const label=document.createElement('div');label.className='item-main';
+    label.textContent='Conectat: '+account.display_name+' · '+account.channel_id+' · doar citire';
+    const disconnect=document.createElement('button');disconnect.type='button';
+    disconnect.className='btn small outline';disconnect.textContent='Deconectează local';
+    disconnect.onclick=async()=>{
+     if(!confirm('Ștergi tokenul local? Revocă separat accesul și din contul platformei.'))return;
+     try{await api('/social/'+name+'/disconnect','POST',{channel_id:account.channel_id});
+      await refreshSocialAccounts();toast('Token local șters.');
+     }catch(err){toast(err.message);}
+    };
+    entry.append(label,disconnect);target.append(entry);
+   }
+  }
+ }catch(err){target.textContent='Conectare opțională indisponibilă: '+err.message;}
+}
+if($('#social-refresh'))$('#social-refresh').onclick=refreshSocialAccounts;
+if($('#social-link-form'))$('#social-link-form').onsubmit=async event=>{
+ event.preventDefault();
+ const target=$('#social-link-result');target.replaceChildren();
+ const provider=$('#social-provider').value,channel_id=$('#social-channel').value;
+ if(!confirm('Vrei să pregătești autentificarea oficială '+provider+' pentru '+channel_id+
+             '? Doar citire, fără publicare.'))return;
+ try{
+  const response=await api('/social/'+provider+'/start','POST',{channel_id});
+  const p=document.createElement('p');
+  p.textContent='Link valabil 10 minute. Verifică platforma și permisiunile înainte de acord.';
+  const link=document.createElement('a');link.href=response.authorization_url;
+  link.target='_blank';link.rel='noopener noreferrer';link.textContent='Deschide autentificarea oficială '+provider;
+  target.append(p,link);
+ }catch(err){target.textContent='Nu se poate conecta: '+err.message;}
+};
+const previousGoSocial=go;
+go=function(page){previousGoSocial(page);if(page==='integrations')refreshSocialAccounts()};window.go=go;
+if(new URLSearchParams(location.search).has('oauth')){
+ const value=new URLSearchParams(location.search).get('oauth');
+ toast(value==='connected'?'Cont conectat pentru citire. Verifică starea în Integrări.':
+       'OAuth nu s-a finalizat. Verifică setările și reîncearcă.');
+ history.replaceState({},'',location.pathname);
+}
