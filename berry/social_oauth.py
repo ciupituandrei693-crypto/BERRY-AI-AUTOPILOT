@@ -81,7 +81,11 @@ def _secret(provider: str) -> str:
 
 
 def _redirect(provider: str) -> str:
-    base = os.getenv('BERRY_SOCIAL_REDIRECT_BASE', 'http://localhost:8765').strip().rstrip('/')
+    default = 'http://localhost:8765' if provider == 'youtube' else os.getenv('BERRY_SOCIAL_REDIRECT_BASE', '')
+    key = {'youtube': 'BERRY_YOUTUBE_REDIRECT_BASE',
+           'tiktok': 'BERRY_TIKTOK_REDIRECT_BASE',
+           'instagram': 'BERRY_INSTAGRAM_REDIRECT_BASE'}[provider]
+    base = os.getenv(key, default).strip().rstrip('/')
     parts = urllib.parse.urlsplit(base)
     if parts.username or parts.password or parts.query or parts.fragment or parts.path not in ('', '/'):
         raise OAuthError('Baza redirect OAuth trebuie sa fie doar origine, fara path/query')
