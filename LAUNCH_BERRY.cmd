@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title BERRY AI AUTOPILOT - Local Studio v1.3 RC
+title BERRY AI AUTOPILOT - Local Studio v1.4 RC
 if exist "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe" (
   "dist\BERRY_AI_AUTOPILOT\BERRY_AI_AUTOPILOT.exe"
   exit /b %errorlevel%
