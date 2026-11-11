@@ -72,12 +72,12 @@ if __name__ == '__main__':
         from berry import diagnostics
         from berry.app import app  # ensure the frozen build contains the ASGI application
         result = diagnostics.report()
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        print(json.dumps(result, ensure_ascii=True, indent=2))
         sys.exit(0 if result['application']['imports_ok'] and result['application']['static_ok'] else 1)
     load_local_configuration()
     configure_local_storage()
     threading.Thread(target=open_when_ready, daemon=True).start()
     import uvicorn
     print('BERRY AI AUTOPILOT | Local: http://127.0.0.1:8765')
-    print('Fără publicare automată, fără GPU cloud și fără plăți.')
+    print('Fara publicare automata, fara GPU cloud si fara plati.')
     uvicorn.run('berry.app:app', host='127.0.0.1', port=8765, log_level='info', reload=False)
