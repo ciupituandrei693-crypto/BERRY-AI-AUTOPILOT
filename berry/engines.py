@@ -121,11 +121,28 @@ def statuses() -> dict:
                             "ready": False, "detail": "Python TTS separat instalabil; inferența vocală rămâne de testat"}
     result["hyperframes"] = {"configured": _local_file("BERRY_HYPERFRAMES_BIN"), "online": False,
                              "ready": False, "detail": "CLI HTML/CSS -> MP4; randarea reală nu a fost verificată"}
-    result["openclipper"] = {"configured": _local_dir("BERRY_OPENCLIPPER_ROOT"), "online": False,
-                             "ready": False, "detail": "Sursa Windows prezentă; instalatorul și integrarea nu sunt validate"}
-    result["instagram_agent_skill"] = {"configured": _local_dir("BERRY_INSTAGRAM_SKILL_ROOT"),
-                                       "online": False, "ready": False,
-                                       "detail": "Doar referințe pentru scenarii, hook-uri și descrieri; publicare dezactivată"}
+    root = Path(__file__).resolve().parents[1]
+    result["hyperframes_source"] = {
+        "configured": (root / "local_engines" / "HyperFramesSource" / "package.json").is_file(),
+        "online": False, "ready": False,
+        "detail": "Sursa arhivei prezenta; pentru randare trebuie CLI npm separat si test MP4"}
+    result["openclipper"] = {
+        "configured": _local_dir("BERRY_OPENCLIPPER_ROOT") or
+                      (root / "local_engines" / "OpenClipper" / "package.json").is_file(),
+        "online": False, "ready": False,
+        "detail": "Sursa Windows importata; Tauri desktop si exportul nu sunt testate"}
+    from . import instagram_skill_tools
+    try:
+        for kind in instagram_skill_tools.SCRIPTS:
+            instagram_skill_tools.checked_script(kind)
+        ig_ready = True
+    except instagram_skill_tools.InstagramToolError:
+        ig_ready = False
+    result["instagram_agent_skill"] = {
+        "configured": instagram_skill_tools.source_root().is_dir(),
+        "online": False, "ready": ig_ready,
+        "detail": "3 verificari SEO locale disponibile; NU conecteaza Instagram si NU publica" if ig_ready
+                  else "Importa ZIP-ul verificat pentru hook/caption/beat sheet"}
     result["blender"] = {"configured": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "online": False,
                          "ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
                          "detail": "Executabil Blender disponibil; script procedural 3D opțional"}
