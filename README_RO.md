@@ -65,3 +65,7 @@ Dacă dorești ComfyUI, ACE-Step, VoiceStudio, WanGP sau faster-whisper, consult
 ## Componente noi din lista AI FRUIT STUDIO
 
 Instalatorul asistat poate pregati suplimentar **Chatterbox** (TTS separat), **HyperFrames** (video HTML/CSS local), **OpenClipper** (sursa Windows si instalator desktop manual) si **Instagram Agent Skill** (biblioteca de idei, hook-uri, descrieri si planificare, fara postare automata). La final apare raportul `media_addons_*.json` in `%LOCALAPPDATA%\BERRY_AI_AUTOPILOT\reports`. Codul si pachetele instalate nu garanteaza functionarea motoarelor; sunt necesare teste reale Windows. Vezi [documentatia](docs/INSTALARE_COMPLETA_WINDOWS.md).
+
+## Google OAuth / YouTube (PREGĂTIRE OFFLINE)
+
+În pagina **Integrări**, BERRY afișează cinci sloturi YouTube și permite salvarea unui plan local cu nume/ID canal, fără verificarea identității. `youtube.readonly` este singurul scope pregătit; conectarea Google, callbackul și uploadul răspund cu HTTP 423 și nu stochează tokenuri. Butonul Google este dezactivat. Vezi [ghidul de pregătire](docs/YOUTUBE_GOOGLE_OAUTH_PREPARATION.md).
