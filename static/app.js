@@ -348,3 +348,18 @@ if(new URLSearchParams(location.search).has('oauth')){
        'OAuth nu s-a finalizat. Verifică setările și reîncearcă.');
  history.replaceState({},'',location.pathname);
 }
+
+
+// OpenClipper desktop MCP — loopback-only, read-only listing.
+async function clipperAction(kind){
+ const out=$('#clipper-results');if(!out)return;
+ out.textContent='Se verifică OpenClipper local...';
+ try{
+  const data=await api('/openclipper/'+kind);
+  out.textContent=JSON.stringify(data,null,2);
+ }catch(err){out.textContent='OpenClipper indisponibil: '+err.message+
+  '\nPornește aplicația desktop OpenClipper. Nu se modifică niciun clip.';}
+}
+if($('#clipper-refresh'))$('#clipper-refresh').onclick=()=>clipperAction('status');
+if($('#clipper-projects'))$('#clipper-projects').onclick=()=>clipperAction('list_projects');
+if($('#clipper-exports'))$('#clipper-exports').onclick=()=>clipperAction('list_exports');
