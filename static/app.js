@@ -302,7 +302,24 @@ async function refreshSocialAccounts(){
       await refreshSocialAccounts();toast('Token local șters.');
      }catch(err){toast(err.message);}
     };
-    entry.append(label,disconnect);target.append(entry);
+    entry.append(label,disconnect);
+    if(name==='youtube'){
+     const stats=document.createElement('button');stats.type='button';
+     stats.className='btn small outline';stats.textContent='Statistici YouTube';
+     stats.onclick=async()=>{
+      const result=$('#social-link-result');
+      result.textContent='Se citesc statisticile canalului...';
+      try{
+       const data=await api('/social/youtube/channel-stats','POST',{channel_id:account.channel_id});
+       result.textContent='YouTube · '+data.display_name+' · vizualizări totale: '+
+        data.views_total+' · videoclipuri: '+data.videos_total+
+        ' · abonați: '+(data.subscribers??'ascunși')+
+        ' · doar citire, fără publicare.';
+      }catch(err){result.textContent='Statistici indisponibile: '+err.message;}
+     };
+     entry.append(stats);
+    }
+    target.append(entry);
    }
   }
  }catch(err){target.textContent='Conectare opțională indisponibilă: '+err.message;}
