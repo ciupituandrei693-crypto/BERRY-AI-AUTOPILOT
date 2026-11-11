@@ -69,3 +69,11 @@ Instalatorul asistat poate pregati suplimentar **Chatterbox** (TTS separat), **H
 ## Google OAuth / YouTube (PREGĂTIRE OFFLINE)
 
 În pagina **Integrări**, BERRY afișează cinci sloturi YouTube și permite salvarea unui plan local cu nume/ID canal, fără verificarea identității. `youtube.readonly` este singurul scope pregătit; conectarea Google, callbackul și uploadul răspund cu HTTP 423 și nu stochează tokenuri. Butonul Google este dezactivat. Vezi [ghidul de pregătire](docs/YOUTUBE_GOOGLE_OAUTH_PREPARATION.md).
+
+## Arhivele BERRY primite și analizate — nu retrimite
+
+Au fost primite și verificate cele trei ZIP-uri: `instagram-agent-skill-main(2).zip` (MIT), `hyperframes-main(2).zip` (Apache 2.0), `OpenClipper-master.zip` (MIT). Hash-urile SHA256, inventarul și limitările sunt documentate în [analiza arhivelor](docs/ARHIVE_PRIMITE_INSTAGRAM_HYPERFRAMES_OPENCLIPPER.md).
+
+**Import local fără re-descărcare:** copiază ZIP-urile originale în `incoming/` și execută `IMPORT_ARHIVE_PRIMITE.cmd`. Importatorul verifică SHA256, CRC, căi nesigure și symlink-uri, nu suprascrie surse existente și nu execută cod terț. În SEO Studio, instrumentele `hookscore.py`, `caption.py` și `beats.py` din arhiva Instagram pot fi apelate local după import, cu SHA256 individual verificat. Scorurile originale sunt predominant pentru engleză și orientative în română.
+
+**HyperFrames și OpenClipper nu sunt încă randate/instalate funcțional pe PC-ul utilizatorului.** Pentru HyperFrames folosim CLI-ul oficial npm separat; OpenClipper necesită aplicația desktop Tauri sau build Windows. Conturile sociale și cloud rămân dezactivate.
