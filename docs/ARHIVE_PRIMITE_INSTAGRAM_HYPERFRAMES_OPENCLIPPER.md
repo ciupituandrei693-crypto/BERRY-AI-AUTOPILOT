@@ -30,7 +30,7 @@ Celelalte zece skill-uri rămân **material de referință editorială**, nu aut
 - Arhiva conține monorepo și pachetul CLI `@hyperframes/cli` versiunea **0.9.33**, cu cerință **Node.js >=22**; sursa folosește și **Bun** pentru buildul monorepo.
 - CLI-ul local acceptă `hyperframes render -c ./composition.html -o output.mp4`, dar pentru randare reală sunt necesare instalarea npm, FFmpeg și browser/Chromium local.
 - `publish`, `cloud render`, `events` și funcțiile Pro **nu se vor executa automat**. Unele skill-uri upstream sugerează evenimente de telemetrie; BERRY nu invocă acele instrucțiuni.
-- În BERRY este pregătită detectarea sursei importate și a CLI-ului, dar **nu există încă dovada randării unui MP4 real** pe PC-ul utilizatorului.
+- În BERRY există acum adaptorul CLI cu HTML generat, GSAP local și randare MP4 la cerere, dar **nu există încă dovada randării unui MP4 real** pe PC-ul utilizatorului.
 
 ### OpenClipper
 
@@ -38,7 +38,7 @@ Celelalte zece skill-uri rămân **material de referință editorială**, nu aut
 - Include modele ONNX pentru detecție/reîncadrare, dar transcrierea completă poate necesita descărcarea modelelor Whisper/Parakeet.
 - Aplicația poate pregăti Shorts/Reels, subtitrări și export. Are și funcții de conectare/publicare către unele platforme; **BERRY nu le activează**.
 - Importul sursei **nu echivalează cu instalarea aplicației desktop**. Pentru rulare se folosește instalatorul oficial Windows sau un build Tauri cu Rust/Windows SDK.
-- Nu a fost confirmat un API local stabil OpenClipper pentru control automat de către JARVIS; până atunci, exportul este o operație supravegheată/manuală.
+- Documentația OpenClipper confirmă un endpoint MCP HTTP local la `http://127.0.0.1:12742/mcp`. BERRY îl folosește doar pentru `list_projects` și `list_exports`, fără apeluri de modificare. Exportul video și publicarea rămân operații supravegheate/manuale.
 
 ## Instalare din arhivele deja existente pe PC (fără re-descărcare)
 
