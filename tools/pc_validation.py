@@ -50,13 +50,16 @@ def _api_smoke(tmp: Path) -> dict:
         db.DB = tmp / "smoke.sqlite3"
         try:
             with TestClient(app) as client:
-                status = client.get("/api/status")
-                channels = client.get("/api/channels")
-                created = client.post("/api/items", json={
+                from berry import app as app_module
+                key = app_module.KEY
+                headers = {'X-BERRY-KEY': key} if key else {}
+                status = client.get("/api/status", headers=headers)
+                channels = client.get("/api/channels", headers=headers)
+                created = client.post("/api/items", headers=headers, json={
                     "channel_id": "lab", "content_type": "short15",
                     "topic": "Verificare locală AFINA"
                 })
-                engines = client.get("/api/engines")
+                engines = client.get("/api/engines", headers=headers)
                 passed = (status.status_code == 200 and channels.status_code == 200
                           and created.status_code == 201 and engines.status_code == 200
                           and len(channels.json()) == 5
