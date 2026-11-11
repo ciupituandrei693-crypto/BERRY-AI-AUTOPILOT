@@ -189,6 +189,22 @@ def _jarvis_smoke(tmp: Path) -> dict:
         db.DB = old
 
 
+def _afina_end_to_end() -> dict:
+    from berry.studio import binary_path
+    if not binary_path('ffmpeg', 'BERRY_FFMPEG_PATH'):
+        return _step('AFINA 15s end-to-end', 'SKIP', 'FFmpeg lipseste')
+    code, seconds, message = _run([sys.executable, str(ROOT / 'tools' / 'smoke_afina.py')],
+                                  280, ROOT)
+    try:
+        result = json.loads(message.strip())
+    except (ValueError, TypeError):
+        result = {}
+    passed = code == 0 and result.get('status') == 'PASS'
+    return _step('AFINA 15s end-to-end', 'PASS' if passed else 'FAIL',
+                 'MP4 local 15s produs in baza temporara; nepublicat' if passed
+                 else 'Test AFINA nereusit: ' + message[-200:], seconds)
+
+
 def _exe_smoke() -> dict:
     exe = ROOT / "dist" / "BERRY_AI_AUTOPILOT" / "BERRY_AI_AUTOPILOT.exe"
     if os.name != "nt":
@@ -253,9 +269,11 @@ def validate(full: bool = False, tests: bool = False) -> dict:
         if full:
             report["steps"].append(_hyperframes_benchmark(tmp))
             report["steps"].append(_openclipper_benchmark())
+            report["steps"].append(_afina_end_to_end())
         else:
             report["steps"].append(_step('HyperFrames MP4 2s', 'SKIP', 'Ruleaza cu --full'))
             report["steps"].append(_step('OpenClipper MCP local', 'SKIP', 'Ruleaza cu --full'))
+            report["steps"].append(_step('AFINA 15s end-to-end', 'SKIP', 'Ruleaza cu --full'))
         report["steps"].append(_jarvis_smoke(tmp))
         report["steps"].append(_exe_smoke())
         if tests:
