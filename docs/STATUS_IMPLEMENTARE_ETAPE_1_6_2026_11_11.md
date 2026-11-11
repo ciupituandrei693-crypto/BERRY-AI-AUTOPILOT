@@ -11,7 +11,7 @@
 | 3. JARVIS ONE | **Da**: API local securizat, pachete, idempotency, render, QA, evenimente, cerere review; aprobarea și publicarea blocate prin JARVIS | **NU** pe PC după modificări; teste incluse |
 | 4. Conturi YouTube/TikTok/Instagram | **Da, opțional pentru autentificare doar citire**: OAuth state unic, PKCE pentru YouTube/TikTok, tokenuri criptate, deconectare locală | **NU** cu conturi reale; necesită aplicații de dezvoltator, credențiale, redirecturi și aprobare |
 | 5. Calendar, SEO, publicare, analytics | **Parțial**: SEO, QA drepturi, aprobare umană, calendar local, pachete ZIP pentru publicare manuală, CSV analytics, YouTube channel stats opțional | **NU** pentru upload/publicare live; nu există scope de upload/posting |
-| 6. Windows EXE + verificare | **Da, sursa/build scripts**: `LAUNCH_BERRY.cmd`, `BUILD_WINDOWS_EXE.cmd`, `TESTE_FINALE_PC.cmd`, teste automate noi | **NU** EXE compilat/verificat aici; se construiește pe Windows |
+| 6. Windows EXE + verificare | **Da**: `START_BERRY_PORTABLE.cmd`, `BUILD_WINDOWS_EXE.cmd`, `TESTE_FINALE_PC.cmd` și CI Windows | **DA în GitHub Actions Windows**: 80 teste trecute, 1 omis; executabil PyInstaller construit și `--self-test` trecut. **NU încă pe PC-ul utilizatorului** |
 
 **Nu reprezenta tabelul ca „6/6 complet funcționale”.** Codul este livrat, dar o parte din motoare, autentificările și publicarea necesită verificări și permisiuni externe.
 
@@ -79,6 +79,6 @@
 
 ## Stadiul verificării în acest mediu
 
-Fișierele au fost create și confirmate în repository-ul GitHub. Sintaxa `static/app.js` a fost verificată cu parserul JavaScript. Au fost adăugate teste Python pentru API-ul JARVIS, HyperFrames, OpenClipper și OAuth, dar **aceste teste noi nu au fost executate aici**; mediul de execuție Python/Windows nu a fost disponibil în această etapă. Nu există dovadă de EXE final compilat, OAuth real sau videoclip AI 3D complet.
+Fișierele au fost confirmate în repository-ul GitHub. **GitHub Actions 43038564660 a trecut pe Windows și Linux**: 80 teste trecute și 1 omis pe fiecare sistem; testul AFINA de 15 secunde a produs un MP4 real **MOTION_GRAPHICS_LOCAL**, nepublicat, fără GPU cloud. Executabilul Windows PyInstaller a fost compilat, iar `--self-test` a trecut; arhiva portabilă include `START_BERRY_PORTABLE.cmd`. Nu există încă dovadă de funcționare pe PC-ul utilizatorului, OAuth real, publicare automată sau videoclip AI 3D complet. Testele HyperFrames și OpenClipper folosesc simulări/mocks, nu motoarele desktop instalate.
 
 **Regulă de acceptanță:** fiecare etapă se declară finalizată funcțional doar după raportul de test real, fără erori și fără SKIP la componenta relevantă.
