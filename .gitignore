@@ -88,3 +88,7 @@ local_engines/
 # Large local model checkpoints / downloads (never commit)
 local_models/
 local_engines/
+
+# User-provided archives must stay local, never committed
+incoming/
+*.zip
