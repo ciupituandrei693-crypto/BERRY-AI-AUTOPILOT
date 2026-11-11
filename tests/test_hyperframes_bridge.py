@@ -51,6 +51,9 @@ def test_mocked_cli_creates_local_concept_not_ai(client, tmp_path, monkeypatch):
     cli = tmp_path / 'hyperframes.cmd'
     cli.write_text('mock')
     monkeypatch.setenv('BERRY_HYPERFRAMES_BIN', str(cli))
+    gsap = tmp_path / 'gsap.min.js'
+    gsap.write_text('window.gsap = {};', encoding='utf8')
+    monkeypatch.setenv('BERRY_HYPERFRAMES_GSAP_PATH', str(gsap))
     # Avoid starting background thread; insert a job and run its worker inline.
     now = db.utcnow()
     with db.connection() as con:
