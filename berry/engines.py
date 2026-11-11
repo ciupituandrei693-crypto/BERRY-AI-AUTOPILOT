@@ -115,8 +115,17 @@ def statuses() -> dict:
     from . import model_bridge
     for engine in model_bridge.KINDS:
         result[engine] = model_bridge.status(engine)
-    result["chatterbox"] = {"configured": _local_dir("BERRY_CHATTERBOX_ROOT"), "online": False, "ready": False,
-                            "detail": "Sursa locală nu garantează un model vocal instalat"}
+    chatterbox_source = _local_dir("BERRY_CHATTERBOX_ROOT")
+    chatterbox_python = _local_file("BERRY_CHATTERBOX_PYTHON")
+    result["chatterbox"] = {"configured": chatterbox_source and chatterbox_python, "online": False,
+                            "ready": False, "detail": "Python TTS separat instalabil; inferența vocală rămâne de testat"}
+    result["hyperframes"] = {"configured": _local_file("BERRY_HYPERFRAMES_BIN"), "online": False,
+                             "ready": False, "detail": "CLI HTML/CSS -> MP4; randarea reală nu a fost verificată"}
+    result["openclipper"] = {"configured": _local_dir("BERRY_OPENCLIPPER_ROOT"), "online": False,
+                             "ready": False, "detail": "Sursa Windows prezentă; instalatorul și integrarea nu sunt validate"}
+    result["instagram_agent_skill"] = {"configured": _local_dir("BERRY_INSTAGRAM_SKILL_ROOT"),
+                                       "online": False, "ready": False,
+                                       "detail": "Doar referințe pentru scenarii, hook-uri și descrieri; publicare dezactivată"}
     result["blender"] = {"configured": bool(binary_path("blender", "BERRY_BLENDER_PATH")), "online": False,
                          "ready": bool(binary_path("blender", "BERRY_BLENDER_PATH")),
                          "detail": "Executabil Blender disponibil; script procedural 3D opțional"}
