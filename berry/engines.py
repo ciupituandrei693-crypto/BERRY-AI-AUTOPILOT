@@ -119,18 +119,25 @@ def statuses() -> dict:
     chatterbox_python = _local_file("BERRY_CHATTERBOX_PYTHON")
     result["chatterbox"] = {"configured": chatterbox_source and chatterbox_python, "online": False,
                             "ready": False, "detail": "Python TTS separat instalabil; inferența vocală rămâne de testat"}
-    result["hyperframes"] = {"configured": _local_file("BERRY_HYPERFRAMES_BIN"), "online": False,
-                             "ready": False, "detail": "CLI HTML/CSS -> MP4; randarea reală nu a fost verificată"}
+    from . import hyperframes_bridge, openclipper_bridge
+    hf = hyperframes_bridge.status()
+    result["hyperframes"] = {
+        "configured": hf["cli_configured"], "online": False,
+        "ready": hf["ready_for_local_render"],
+        "detail": "CLI + GSAP local pregatite; randarea reala trebuie validata pe Windows"
+                  if hf["ready_for_local_render"] else "Configureaza CLI si GSAP local, fara CDN"}
     root = Path(__file__).resolve().parents[1]
     result["hyperframes_source"] = {
         "configured": (root / "local_engines" / "HyperFramesSource" / "package.json").is_file(),
         "online": False, "ready": False,
         "detail": "Sursa arhivei prezenta; pentru randare trebuie CLI npm separat si test MP4"}
+    oc = openclipper_bridge.status()
     result["openclipper"] = {
         "configured": _local_dir("BERRY_OPENCLIPPER_ROOT") or
                       (root / "local_engines" / "OpenClipper" / "package.json").is_file(),
-        "online": False, "ready": False,
-        "detail": "Sursa Windows importata; Tauri desktop si exportul nu sunt testate"}
+        "online": oc["online"], "ready": oc["online"],
+        "detail": "MCP desktop local online, doar citire" if oc["online"]
+                  else "Porneste OpenClipper desktop pentru MCP; exportul nu este testat"}
     from . import instagram_skill_tools
     try:
         for kind in instagram_skill_tools.SCRIPTS:
