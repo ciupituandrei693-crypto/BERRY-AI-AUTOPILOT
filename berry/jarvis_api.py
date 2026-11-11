@@ -97,7 +97,7 @@ def capabilities():
         'department': 'BERRY_AI_AUTOPILOT', 'assistant': 'JARVIS_ONE_ULTIMATE',
         'channels': [c[0] for c in db.CHANNELS],
         'local_render': studio.capabilities(),
-        'local_engines': engines.status(),
+        'local_engines': engines.statuses(),
         'package_creation': True, 'local_render_submission': True,
         'quality_checks': True, 'human_review_required': True,
         'human_approval_via_berry_dashboard_only': True,
