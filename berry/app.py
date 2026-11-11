@@ -102,7 +102,8 @@ def get_status():
        'pending_batches':db.one_row("SELECT COUNT(*) n FROM batches WHERE status='PENDING'")['n'],
        'production_limit':float(cfg['production_limit']),
        'promo_per_channel':float(cfg['promo_per_channel']),
-       'social_connections':0,'gpu_connections':0,'external_server':False,
+       'social_connections':sum(len(v['connected']) for v in social_oauth.status()['providers'].values()),
+       'gpu_connections':0,'external_server':False,
        'real_publication_enabled':False,'real_ai_video_enabled':False,
        'local_storyboard_preview_enabled':True,'local_motion_graphics_enabled':True,'local_calendar_enabled':True,'local_export_enabled':True,
        'notice':'v1.3 RC: bridge facial AI/3D local configurabil și teste PC; fără publicare, cloud sau costuri.'}
@@ -749,7 +750,15 @@ async def analytics_import(file: UploadFile = File(...)):
         raise HTTPException(422, str(exc)) from exc
 
 @app.get('/api/integrations',dependencies=[Depends(guarded)])
-def integrations():return {'instagram':'NOT_CONNECTED','tiktok':'NOT_CONNECTED','youtube':'NOT_CONNECTED','gpu':'DISABLED','external_server':'DISABLED', 'local_ai':'OPTIONAL_LOCAL_ENGINES','status':'REMOTE_AND_SOCIAL_FINAL_PHASE_ONLY'}
+def integrations():
+    accounts = social_oauth.status()
+    return {**{p: ('CONNECTED_READ_ONLY' if accounts['providers'][p]['connected'] else 'NOT_CONNECTED')
+               for p in ('instagram','tiktok','youtube')},
+            'oauth_opt_in_enabled': accounts['enabled'],
+            'publishing_enabled': False,
+            'gpu': 'DISABLED', 'external_server': 'DISABLED',
+            'local_ai': 'OPTIONAL_LOCAL_ENGINES',
+            'status': 'READ_ONLY_SOCIAL_OPT_IN_NO_PUBLISHING'}
 
 @app.get('/')
 def home():return FileResponse(STATIC/'index.html')
