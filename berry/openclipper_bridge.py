@@ -78,11 +78,11 @@ def _call(message: dict, *, session: str = '') -> tuple[dict, str]:
 
 
 def status() -> dict:
-    url = f'http://127.0.0.1:{_port()}/studio-import/health'
     try:
+        url = f'http://127.0.0.1:{_port()}/studio-import/health'
         with OPENER.open(urllib.request.Request(url, method='GET'), timeout=2) as resp:
             online = resp.status == 200
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
+    except (OpenClipperError, urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
         online = False
     return {
         'local_only': True, 'online': online,
