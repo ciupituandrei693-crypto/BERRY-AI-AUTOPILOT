@@ -21,3 +21,7 @@ For the Windows-only real performance and app checks, run `TESTE_FINALE_PC.cmd`.
 ## Guided Windows installation of local engines
 
 Double-click `INSTALARE_TOATE_COMPONENTELE.cmd` to interactively install free local prerequisites, Blender, Rhubarb Windows executable, ComfyUI portable, VoiceStudio, Piper, faster-whisper and PyInstaller, plus optional model downloads and isolated AI runtimes. It prompts for downloads and does not enable cloud services or social posting. Heavy model installation depends on GPU, disk space, licenses and upstream Windows support. The script has **not been executed on the user's Windows machine**. See `docs/INSTALARE_COMPLETA_WINDOWS.md`; send the generated `install_*.json` and `pc_validation_*.json` reports for diagnosis.
+
+## Google OAuth / YouTube (PREGĂTIRE OFFLINE)
+
+În pagina **Integrări**, BERRY afișează cinci sloturi YouTube și permite salvarea unui plan local cu nume/ID canal, fără verificarea identității. `youtube.readonly` este singurul scope pregătit; conectarea Google, callbackul și uploadul răspund cu HTTP 423 și nu stochează tokenuri. Butonul Google este dezactivat. Vezi [ghidul de pregătire](docs/YOUTUBE_GOOGLE_OAUTH_PREPARATION.md).
