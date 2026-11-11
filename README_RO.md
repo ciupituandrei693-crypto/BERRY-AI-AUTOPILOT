@@ -87,6 +87,6 @@ Au fost primite și verificate cele trei ZIP-uri: `instagram-agent-skill-main(2)
 - **OpenClipper**: citire proiecte și exporturi prin MCP local `127.0.0.1:12742`, când aplicația desktop este pornită; fără modificare sau publicare.
 - **OAuth YouTube/TikTok/Instagram**: cod opt-in pentru conectare cu permisiuni de citire/profil, state unic și tokenuri criptate local. Implicit este **dezactivat**; necesită aplicații de dezvoltator, chei și autorizarea ta. TikTok/Instagram necesită callback HTTPS aprobat.
 - **YouTube statistici**: interogare agregată doar la cerere după conectare; analytics CSV și calendarul local rămân disponibile fără OAuth.
-- **Windows**: `LAUNCH_BERRY.cmd`, `BUILD_WINDOWS_EXE.cmd` și `TESTE_FINALE_PC.cmd` actualizate; raportul testează inclusiv HyperFrames MP4 și OpenClipper MCP dacă sunt configurate.
+- **Windows**: `LAUNCH_BERRY.cmd`, `BUILD_WINDOWS_EXE.cmd` și `TESTE_FINALE_PC.cmd` actualizate; raportul testează inclusiv HyperFrames MP4 și OpenClipper MCP dacă sunt configurate. Testul complet include și un **AFINA 15 secunde** end-to-end local, într-o bază temporară.
 
 **Nu declara aplicația finalizată operațional până când nu trec testele reale pe Windows.** Nu au fost activate conturi, publicare, server extern sau GPU cloud.
