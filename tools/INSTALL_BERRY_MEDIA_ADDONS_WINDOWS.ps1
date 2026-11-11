@@ -65,8 +65,10 @@ function Get-Python311 {
     if ($version -eq '3.11') { return $exe }
   }
   if (Cmd 'py') {
-    & py -3.11 --version 2>$null
-    if ($LASTEXITCODE -eq 0) { return 'py' }
+    try {
+      & py -3.11 --version 2>$null
+      if ($LASTEXITCODE -eq 0) { return 'py' }
+    } catch {}
   }
   return $null
 }
