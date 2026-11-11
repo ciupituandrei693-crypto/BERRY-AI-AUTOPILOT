@@ -281,6 +281,9 @@ async function refreshSocialAccounts(){
     ' · publicare: DEZACTIVATĂ · permisiuni de upload: NU';
   target.append(note);
   for(const [name,provider] of Object.entries(data.providers)){
+   const indicator=$('#integration-'+name);
+   if(indicator)indicator.textContent=provider.connected.length?
+    provider.connected.length+' CONTURI CONECTATE · DOAR CITIRE':'NECONECTAT';
    const row=document.createElement('div');row.className='item-row';
    const info=document.createElement('div');info.className='item-main';
    info.textContent=name.toUpperCase()+' · '+(provider.configured?'chei configurate':'chei lipsă')+
