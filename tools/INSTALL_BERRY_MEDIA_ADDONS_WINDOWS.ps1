@@ -39,6 +39,14 @@ function Clone-Repo([string]$Name, [string]$Url) {
     return $dest
   }
   if (Test-Path $dest) {
+    $fromZip = (Test-Path (Join-Path $dest 'README.md')) -and (
+      ($Name -eq 'OpenClipper' -and (Test-Path (Join-Path $dest 'package.json'))) -or
+      ($Name -eq 'InstagramAgentSkill' -and (Test-Path (Join-Path $dest 'skills/ig-reel/hookscore.py')))
+    )
+    if ($fromZip) {
+      Mark $Name 'SOURCE_PRESENT' 'Sursa importata din ZIP; nu descarc din nou.'
+      return $dest
+    }
     Mark $Name 'MANUAL' 'Folder existent dar incomplet; nu suprascriu.'
     return $null
   }
